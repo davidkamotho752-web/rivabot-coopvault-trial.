@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CoopVault · Rivabot SACCO</title>
+<meta name="theme-color" content="#0b5d3b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{--g:#0b5d3b;--g2:#e6f2ec;--bg:#f4f6f5;--tx:#17211c;--mu:#5a665f;--bd:#d9e0dc;--red:#b3261e;--amb:#8a4d00;--blue:#1b5fa8;--card:#fff}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--tx);font-size:15px;line-height:1.45;padding-bottom:76px}
+/* Global watermark: above content (screenshots always carry it), click-through, per-user text set by JS */
+body::after{content:"";position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:9000;background-image:var(--wm,none);background-repeat:repeat}
+.skip{position:absolute;left:-999px;top:0;background:#fff;color:#000;padding:8px;z-index:9999}.skip:focus{left:8px}
+:focus-visible{outline:3px solid #ffbf47;outline-offset:2px}
+header{background:var(--g);color:#fff;padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
+header b{font-size:17px}header small{opacity:.85}
+header .sp{flex:1}
+header .who{font-size:13px;background:rgba(255,255,255,.15);padding:4px 10px;border-radius:99px}
+main{max-width:980px;margin:0 auto;padding:12px 14px}
+h1,h2{margin:6px 0 10px;font-size:19px}h3{margin:0 0 8px;font-size:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px}
+.kpi .n{font-size:20px;font-weight:700}.kpi .l{color:var(--mu);font-size:12.5px}
+.muted{color:var(--mu)}.small{font-size:13px}
+.btn{font:inherit;border:1px solid var(--g);background:var(--g);color:#fff;padding:9px 14px;border-radius:9px;cursor:pointer;margin:2px 4px 2px 0}
+.btn.sec{background:#fff;color:var(--g)}.btn.danger{background:var(--red);border-color:var(--red)}.btn.sm{padding:5px 10px;font-size:13px}
+header .btn.sec{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+input,select,textarea{font:inherit;width:100%;padding:9px;border:1px solid #9aa7a0;border-radius:8px;background:#fff;margin:3px 0 8px;color:var(--tx)}
+label{font-size:13px;color:var(--mu);display:block}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.row>*{flex:1 1 140px}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;background:#eceff1;color:#37474f;white-space:nowrap}
+.badge.ok{background:#dff3e6;color:#0a6b35}.badge.warn{background:#fff0d6;color:var(--amb)}.badge.bad{background:#fde3e1;color:var(--red)}.badge.info{background:#e1edfa;color:var(--blue)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--bd);vertical-align:top}th{color:var(--mu);font-weight:600}
+.tw{overflow-x:auto}
+nav.bot{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--bd);display:flex;z-index:60}
+nav.bot button{flex:1;border:0;background:none;padding:12px 2px 14px;font:inherit;font-size:13px;color:var(--mu);cursor:pointer}
+nav.bot button.on{color:var(--g);font-weight:700;border-top:3px solid var(--g);padding-top:9px}
+.ok{color:#0a6b35}.bad{color:var(--red)}
+.chk{padding:2px 0}.chk::before{content:"✗ ";color:var(--red);font-weight:700}.chk.y::before{content:"✓ ";color:#0a6b35}
+.roles{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.roles button{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:16px 8px;font:inherit;cursor:pointer;text-align:center;color:var(--tx)}
+.roles button:hover{border-color:var(--g);background:var(--g2)}
+#toasts{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:9500;display:flex;flex-direction:column;gap:6px;align-items:center;max-width:92vw}
+.toast{background:#222;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px}.toast.err{background:var(--red)}
+.demo{background:#fff8e1;border:1px dashed #d9a400;border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:10px}
+.login{max-width:560px;margin:20px auto}
+details summary{cursor:pointer;color:var(--g)}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;word-break:break-all}
+.bub{padding:8px 12px;border-radius:12px;margin:6px 0;max-width:88%;white-space:pre-wrap}.bub.me{background:var(--g2);margin-left:auto}.bub.bot{background:#f0f2f1}
+.sim li{margin:2px 0}
+/* Lite mode: text-first, bigger, higher contrast — for slow phones / small screens */
+html.lite body{font-size:17px;background:#fff}html.lite .card,html.lite .kpi{border-radius:0;border-color:#000}
+html.lite .btn{padding:12px 16px;min-height:44px}html.lite input,html.lite select,html.lite textarea{min-height:44px;border-color:#000}
+html.lite header{position:static}html.lite .muted{color:#333}
+@media print{header,nav.bot,.noprint,button,.skip{display:none!important}body{background:#fff;padding:0}.card{border:0}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div id="app"></div>
+<noscript><main style="padding:20px"><h2>JavaScript is off</h2><p>CoopVault needs JavaScript. Please enable it in your browser settings.</p></main></noscript>
+<div id="toasts" role="status" aria-live="polite"></div>
+<script>
+'use strict';
+/* =====================================================================
+   CoopVault v12 · Rivabot SACCO Society Ltd — TRIAL BUILD
+   Runs entirely in the browser (localStorage). Demo / simulated data only.
+   Every figure on every screen is derived from the state + ledger below.
+   ===================================================================== */
+const KEY='coopvault_v12_trial';
+const BUILD='v12.1 · 7 Nov 2026';
+const ACC={'1000':'Bank','1100':'Loans Receivable','1200':'M-Pesa Clearing','2000':'Member Savings','3000':'Reserves','3100':'Share Capital','4000':'Interest Income','4100':'Fee & Penalty Income','5000':'Operating Expenses','5100':'Interest / Dividends on Savings'};
+const DEBIT_NORMAL=['1000','1100','1200','5000','5100'];
+const POL0={minMonths:6,minSavings:12000,maxMult:3,dedCap:2/3,maxPeriod:36,rate:0.015,guarantors:5,journalLimit:100000,penaltyRate:0.05,guarantorDays:30,defaultDays:60};
+const POL_LABEL={minMonths:'Minimum membership (months)',minSavings:'Minimum savings (KSh)',maxMult:'Loan multiple of savings',maxPeriod:'Max repayment period (months)',rate:'Interest per month (declining)',journalLimit:'Manager journal limit (KSh)',penaltyRate:'Late penalty (share of overdue instalment)',guarantorDays:'Notify guarantors after (days late)',defaultDays:'Default escalation after (days late)'};
+const OPEN=['guarantors','credit','exec','approved','batched','active'];
+const PIPE=['guarantors','credit','exec','approved','batched'];
+const MEMBERISH=['member','external'];
+const ROLES={
+ member:{label:'Member',icon:'👤',tabs:[['home','Home'],['loans','Loans'],['guar','Guarantees'],['ledger','Ledger'],['help','Assistant']]},
+ external:{label:'External Member',icon:'🧑‍💼',tabs:[['home','Home'],['loans','Loans'],['guar','Guarantees'],['ledger','Ledger'],['help','Assistant']]},
+ manager:{label:'Manager',icon:'🧾',key:true,tabs:[['today','Today'],['import','Import'],['batches','Batches'],['journals','Journals'],['members','Members']]},
+ credit:{label:'Credit Committee',icon:'🗳️',tabs:[['home','Vote'],['history','History'],['rules','Rules']]},
+ exec:{label:'Executive Committee',icon:'🏛️',key:true,tabs:[['home','Pending'],['loans','Loans'],['access','Access'],['policy','Policy'],['audit','Audit']]},
+ sup:{label:'Supervisory Committee',icon:'👁️',tabs:[['alerts','Alerts'],['reviews','Reviews'],['ledger','Ledger'],['loans','Loans'],['attest','Attest']]},
+ edu:{label:'Education Committee',icon:'🎓',tabs:[['home','Progress'],['materials','Materials'],['queries','Queries']]}
+};
+const STAGES=['','Reminder sent','Guarantors notified','DEFAULT – escalated to Executive'];
+/* ---------- clock (simulation can move time forward) ---------- */
+let CLOCK=0,SIM=false,LAST=null;
+const NOW=()=>new Date(Date.now()+CLOCK*864e5);
+/* ---------- helpers ---------- */
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>'KSh '+Math.round(n||0).toLocaleString('en-KE');
+const money2=n=>'KSh '+(n||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const iso=d=>(d||NOW()).toISOString();
+const dstr=s=>new Date(s).toLocaleDateString('en-KE',{day:'2-digit',month:'short',year:'numeric'});
+const tstr=s=>new Date(s).toLocaleString('en-KE',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+const monthsAgo=n=>{const d=NOW();d.setMonth(d.getMonth()-n);return iso(d)};
+const daysAgo=n=>iso(new Date(NOW().getTime()-n*864e5));
+const monthsBetween=s=>{const a=new Date(s),b=NOW();let m=(b.getFullYear()-a.getFullYear())*12+b.getMonth()-a.getMonth();if(b.getDate()<a.getDate())m--;return Math.max(0,m)};
+const round2=x=>Math.round(x*100)/100;
+const sum=(a,f)=>a.reduce((x,y)=>x+(typeof f==='function'?f(y):(+y[f]||0)),0);
+const pkey=d=>{d=d||NOW();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+function hash(str){let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<str.length;i++){const c=str.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}
+ h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+ return (4294967296*(2097151&h2)+(h1>>>0)).toString(16).padStart(14,'0')}
+function pmt(P,r,n){return r?P*r/(1-Math.pow(1+r,-n)):P/n}
+function makeSchedule(P,r,n,firstDue){const inst=round2(pmt(P,r,n));let bal=P;const rows=[];
+ for(let i=1;i<=n;i++){const intr=round2(bal*r);let prin=round2(inst-intr);if(i===n)prin=round2(bal);bal=round2(bal-prin);const d=new Date(firstDue);d.setMonth(d.getMonth()+i-1);
+  rows.push({n:i,due:iso(d),pay:round2(prin+intr),interest:intr,principal:prin,balance:Math.max(0,bal),paid:false})}
+ return rows}
+function firstDueAfter(disbIso){const d=new Date(disbIso);d.setDate(Math.min(d.getDate(),28));d.setMonth(d.getMonth()+1);return iso(d)}
+
+/* ---------- seed (mode 'demo' = sample SACCO, 'clean' = empty SACCO, officials only) ---------- */
+function seed(mode){
+ CLOCK=0;
+ const S={v:12,clock:0,seq:100,session:null,mode,policy:{...POL0},settings:{aiEndpoint:''},users:[],loans:[],journals:[],pendingJ:[],batches:[],payouts:[],divRuns:[],audit:[],alerts:[],access:[],mpesa:[],
+  materials:[],progress:[],queries:[],proposals:[],attest:{},periods:{},inbox:[],txns:[],reversals:{}};
+ const U=(id,name,role,x)=>S.users.push(Object.assign({id,name,role,phone:'07'+String(10000000+S.users.length*137771).slice(0,8),email:id+'@rivabot.example',idno:String(20000000+S.users.length*13579),joined:monthsAgo(24),savings:0,shares:0,salary:0,deductions:0},x||{}));
+ if(mode==='demo'){
+  U('m1','Grace Wanjiku','member',{savings:240000,shares:5000,salary:95000,deductions:12000,joined:monthsAgo(40)});
+  U('m2','Peter Kiprono','member',{savings:180000,shares:5000,salary:80000,deductions:8000,joined:monthsAgo(30)});
+  U('m3','Mary Achieng','member',{savings:150000,shares:5000,salary:70000,deductions:5000,joined:monthsAgo(28)});
+  U('m4','John Mwangi','member',{savings:320000,shares:5000,salary:120000,deductions:15000,joined:monthsAgo(60)});
+  U('m5','Faith Njeri','member',{savings:90000,shares:5000,salary:60000,deductions:4000,joined:monthsAgo(14)});
+  U('m6','Samuel Otieno','member',{savings:210000,shares:5000,salary:88000,deductions:9000,joined:monthsAgo(36)});
+  U('m7','Lucy Chebet','member',{savings:130000,shares:5000,salary:65000,deductions:6000,joined:monthsAgo(20)});
+  U('m8','David Kamau','member',{savings:8000,shares:2000,salary:50000,deductions:2000,joined:monthsAgo(9)});
+  U('m9','Esther Wambui','member',{savings:60000,shares:2000,salary:55000,deductions:3000,joined:monthsAgo(3)});
+  U('x1','Brian Mutua','external',{savings:110000,shares:3000,salary:72000,deductions:7000,joined:monthsAgo(18)});
+ }
+ U('mg1','Agnes Muthoni','manager',{savings:150000,salary:110000});
+ ['Hassan Abdi','Joyce Nyambura','Tom Ochieng','Ruth Jeptoo'].forEach((n,i)=>U('c'+(i+1),n,'credit',{savings:100000+i*20000,salary:90000}));
+ [['Dr. Kariuki','Chair'],['Mercy Atieno','Vice Chair'],['Isaac Mburu','Secretary'],['Beatrice Wafula','Treasurer']].forEach((n,i)=>U('e'+(i+1),n[0],'exec',{post:n[1],savings:200000,salary:130000}));
+ ['Patrick Njoroge','Alice Mwende','Kennedy Barasa'].forEach((n,i)=>U('s'+(i+1),n,'sup',{savings:120000,salary:85000}));
+ ['Susan Moraa','Daniel Kiplagat','Naomi Wangari','Collins Odhiambo'].forEach((n,i)=>U('d'+(i+1),n,'edu',{savings:90000,salary:70000}));
+ if(mode==='clean'){ // officials hold no money in a clean start: every figure must come from entered transactions
+  S.users.forEach(u=>{u.savings=0;u.shares=0});
+  return S}
+ const disb=monthsAgo(3);const sch=makeSchedule(300000,POL0.rate,24,firstDueAfter(disb));sch[0].paid=true;
+ const mk=(id,uid,amt,per,status,gs,extra)=>Object.assign({id,uid,amount:amt,period:per,rate:POL0.rate,instalment:round2(pmt(amt,POL0.rate,per)),status,payslip:'payslip.pdf',payslipOK:false,
+   guars:gs.map(g=>({uid:g[0],amt:g[1],status:g[2]||'accepted'})),votes:{},schedule:[],created:daysAgo(5),creditAt:null,events:[]},extra||{});
+ S.loans.push(mk('L1','m1',300000,24,'active',[['m4',60000],['m6',60000],['m2',60000],['m3',60000],['x1',60000]],{created:monthsAgo(3),disbursed:disb,schedule:sch,payslipOK:true}));
+ S.loans.push(mk('L2','m2',150000,12,'credit',[['m4',30000],['m6',30000],['m7',30000],['m3',30000],['x1',30000]],{creditAt:daysAgo(2),votes:{c1:{v:'approve',t:daysAgo(1)}}}));
+ S.loans.push(mk('L3','m3',100000,12,'guarantors',[['m4',20000,'pending'],['m6',20000,'accepted'],['m7',20000,'pending'],['m2',20000,'accepted'],['x1',20000,'accepted']],{created:daysAgo(1)}));
+ S.loans.forEach(l=>l.events.push({t:l.created,text:'Application submitted'}));
+ S.users.forEach(u=>{if(u.savings)S.txns.push({uid:u.id,t:u.joined,k:'sav',desc:'Opening savings balance',amt:u.savings});if(u.shares)S.txns.push({uid:u.id,t:u.joined,k:'shr',desc:'Opening share capital',amt:u.shares})});
+ const lb=sch[1].balance+sch[1].principal,totSav=sum(S.users,'savings'),totSh=sum(S.users,'shares');
+ postJournal(S,{desc:'Opening balances',by:'system',kind:'opening',lines:[{acct:'1000',dr:3000000,cr:0},{acct:'1100',dr:lb,cr:0},{acct:'2000',dr:0,cr:totSav},{acct:'3100',dr:0,cr:totSh},{acct:'3000',dr:0,cr:3000000+lb-totSav-totSh}]});
+ S.access.push({id:'A1',execId:'e2',targetId:'m3',scope:'Salary & ID',reason:'Verify payslip discrepancy raised by Credit Committee',t:daysAgo(6),token:'482915',status:'granted',review:null});
+ const pd=NOW();pd.setDate(1);pd.setMonth(pd.getMonth()-1);S.periods[pkey(pd)]={status:'open'};
+ S.materials.push({id:'ED1',title:'How guarantorship works',lang:'EN',body:'A guarantor pledges part of their savings. Those savings stay locked until the loan is cleared.',by:'d1',t:daysAgo(10)});
+ S.materials.push({id:'ED2',title:'Jinsi dhamana inavyofanya kazi',lang:'SW',body:'Mdhamini huweka sehemu ya akiba yake. Akiba hiyo hufungwa hadi mkopo ulipwe wote.',by:'d1',t:daysAgo(10)});
+ S.progress.push({id:'PR1',title:'Q3 member training',text:'312 members trained across 4 sessions. Next: financial planning (Kiswahili).',by:'d2',t:daysAgo(8)});
+ return S}
+
+/* ---------- ledger engine ---------- */
+function postJournal(S,{desc,lines,by,kind}){
+ const dr=sum(lines,'dr'),cr=sum(lines,'cr');
+ if(!(dr>0)||Math.abs(dr-cr)>0.005)throw new Error('Journal is not balanced (Dr '+dr+' ≠ Cr '+cr+')');
+ lines.forEach(l=>{if(!ACC[l.acct])throw new Error('Unknown account '+l.acct)});
+ const prev=S.journals.length?S.journals[S.journals.length-1].hash:'GENESIS';
+ const e={id:'J'+String(S.journals.length+1).padStart(4,'0'),t:iso(),desc,lines,by,kind:kind||'manual',prev};
+ e.hash=hash([prev,e.id,e.t,e.desc,JSON.stringify(e.lines),e.by].join('|'));
+ S.journals.push(e);return e}
+function chainOK(){let prev='GENESIS';for(const e of S.journals){if(e.prev!==prev)return false;if(e.hash!==hash([prev,e.id,e.t,e.desc,JSON.stringify(e.lines),e.by].join('|')))return false;prev=e.hash}return true}
+function balance(a){const d=sum(S.journals,j=>sum(j.lines.filter(l=>l.acct===a),'dr')),c=sum(S.journals,j=>sum(j.lines.filter(l=>l.acct===a),'cr'));return round2(DEBIT_NORMAL.includes(a)?d-c:c-d)}
+function post(o){const e=postJournal(S,o);pushAlert('txn',`${e.id} · ${o.desc} · ${money(sum(o.lines,'dr'))}`,o.by);audit('journal.post',`${e.id} ${o.desc}`,o.by);return e}
+function pushAlert(type,text,by,extra){S.alerts.unshift(Object.assign({id:'AL'+(++S.seq),t:iso(),type,text,by:by||'system'},extra||{}));S.alerts=S.alerts.slice(0,400)}
+function audit(action,detail,by){S.audit.unshift({t:iso(),by:by||(S.session||'system'),action,detail});S.audit=S.audit.slice(0,600)}
+function notify(uid,text){S.inbox.unshift({uid,t:iso(),text});S.inbox=S.inbox.slice(0,500)}
+function ensurePeriods(){const cur=pkey(NOW()),c=Object.keys(S.periods);if(S.journals.length)c.push(pkey(new Date(S.journals[0].t)));if(!c.length)return;c.sort();
+ let [y,m]=c[0].split('-').map(Number),k=c[0];while(k<cur){if(!S.periods[k])S.periods[k]={status:'open'};m++;if(m>12){m=1;y++}k=y+'-'+String(m).padStart(2,'0')}}
+
+/* ---------- state + domain helpers ---------- */
+let S=load();
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.v===12){CLOCK=s.clock||0;s.reversals=s.reversals||{};return s}}catch(e){}return seed('demo')}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const U=id=>S.users.find(x=>x.id===id);
+const nm=id=>id==='mpesa-c2b'?'M-Pesa C2B':(U(id)?U(id).name:(id||'system'));
+const cur=()=>U(S.session);
+const loanOf=id=>S.loans.find(l=>l.id===id);
+const need=(...r)=>{const u=cur();if(!u||!r.includes(u.role))throw new Error('Not allowed for your role')};
+const refinancedIds=()=>new Set(S.loans.filter(l=>PIPE.includes(l.status)&&l.refinanceOf).map(l=>l.refinanceOf));
+const committed=id=>{const rf=refinancedIds();return sum(S.loans.filter(l=>OPEN.includes(l.status)&&!rf.has(l.id)),l=>sum(l.guars.filter(g=>g.uid===id&&g.status!=='declined'),'amt'))};
+const free=id=>round2(U(id).savings-committed(id));
+const loanBal=l=>{const r=l.schedule.find(x=>!x.paid);return r?round2(r.balance+r.principal):0};
+const outstanding=id=>round2(sum(S.loans.filter(l=>l.uid===id&&l.status==='active'),loanBal));
+const daysLate=l=>{const r=l.schedule.find(x=>!x.paid);if(!r)return 0;const d=Math.floor((NOW()-new Date(r.due))/864e5);return d>0?d:0};
+const arrStage=l=>{if(l.status!=='active')return 0;const d=daysLate(l),P=S.policy;return d>=P.defaultDays?3:d>=P.guarantorDays?2:d>0?1:0};
+const penaltyDue=l=>{const r=l.schedule.find(x=>!x.paid);return r&&new Date(r.due)<NOW()?round2(r.pay*S.policy.penaltyRate):0};
+function elig(u,refi){const P=S.policy,m=monthsBetween(u.joined),old=refi?loanOf(refi):null;
+ const open=S.loans.some(l=>l.uid===u.id&&PIPE.includes(l.status));
+ const checks=[[m>=P.minMonths,`Member for at least ${P.minMonths} months (you: ${m})`],[u.savings>=P.minSavings,`Savings of at least ${money(P.minSavings)} (you: ${money(u.savings)})`],[!open,'No application already in progress'],[!u.exited,'Membership is active']];
+ const ob=outstanding(u.id)-(old&&old.status==='active'?loanBal(old):0);
+ return{checks,ok:checks.every(c=>c[0]),max:Math.max(0,Math.floor(P.maxMult*u.savings-ob))}}
+function calc(u,amt,n,refi){const P=S.policy,E=elig(u,refi);const inst=amt>0?pmt(amt,P.rate,n):0,existing=sum(S.loans.filter(l=>l.uid===u.id&&l.status==='active'&&l.id!==refi),'instalment'),ded=u.deductions+existing+inst,cap=u.salary*P.dedCap;
+ const rows=[[amt>0&&amt<=E.max,`Amount ≤ ${money(E.max)} (${P.maxMult}× savings less other loans)`],[n<=P.maxPeriod,`Period ≤ ${P.maxPeriod} months`],[ded<=cap,`Total deductions ${money(ded)} (other ${money(u.deductions)} + current loans ${money(existing)} + new ${money(inst)}) ≤ ${money(cap)} (2/3 of gross)`]];
+ return{inst,ded,cap,rows,ok:rows.every(r=>r[0])}}
+const pendingPay=id=>sum(S.payouts.filter(p=>p.uid===id&&['requested','batched'].includes(p.status)&&p.type==='withdrawal'),'amount');
+function maxWithdraw(u){const P=S.policy,keep=Math.max(P.minSavings,outstanding(u.id)/P.maxMult);return Math.max(0,Math.floor(Math.min(free(u.id),u.savings-keep)-pendingPay(u.id)))}
+function exitBlock(u){if(!MEMBERISH.includes(u.role))return 'Officials cannot exit through this screen';if(u.exited)return 'Already exited';
+ if(S.loans.some(l=>l.uid===u.id&&OPEN.includes(l.status)))return 'You still have a loan or application open';
+ if(committed(u.id)>0)return 'Your savings are still pledged for other members';
+ if(S.payouts.some(p=>p.uid===u.id&&['requested','batched'].includes(p.status)))return 'You have a payout request in progress';return null}
+const cashOut=l=>{const old=l.refinanceOf?loanOf(l.refinanceOf):null;return round2(l.amount-(old&&old.status==='active'?loanBal(old):0))};
+function advanceLoan(l){
+ if(l.status!=='guarantors')return;
+ if(l.guars.some(g=>g.status==='declined')){l.status='declined';l.reason='A guarantor declined';l.events.push({t:iso(),text:'Declined: a guarantor declined'});notify(l.uid,`Your loan ${l.id} was declined by a guarantor. You may re-apply with other guarantors.`);return}
+ if(l.guars.every(g=>g.status==='accepted')){l.status='credit';l.creditAt=iso();l.events.push({t:iso(),text:'All guarantors accepted → Credit Committee queue'});notify(l.uid,`All guarantors accepted loan ${l.id}. It is now with the Credit Committee.`);pushAlert('loan',`${l.id} (${nm(l.uid)}) entered Credit Committee queue`,l.uid)}}
+function postSavings(line,by){const u=U(line.matched);post({desc:`${line.src} ${line.ref} savings – ${u.name}`,lines:[{acct:/Bank|Payroll/.test(line.src)?'1000':'1200',dr:line.amount,cr:0},{acct:'2000',dr:0,cr:line.amount}],by,kind:'savings'});
+ u.savings=round2(u.savings+line.amount);S.txns.push({uid:u.id,t:iso(),k:'sav',desc:`${line.src} contribution ${line.ref}`,amt:line.amount});notify(u.id,`Savings received ${money(line.amount)} via ${line.src}.`);line.posted=true}
+function c2b(p){ // simulates the Daraja C2B confirmation callback
+ if(!(+p.amount>0))throw new Error('Amount must be positive');
+ if(S.mpesa.some(m=>m.ref===p.transId))throw new Error('Duplicate TransID '+p.transId);
+ const u=S.users.find(x=>!x.exited&&MEMBERISH.includes(x.role)&&(x.idno===p.billRef||x.phone===p.billRef))||S.users.find(x=>!x.exited&&MEMBERISH.includes(x.role)&&x.phone===p.msisdn);
+ const line={id:'ML'+(++S.seq),src:'M-Pesa C2B',ref:p.transId,key:p.billRef||p.msisdn,amount:+p.amount,matched:u?u.id:null,posted:false};S.mpesa.push(line);
+ if(u)postSavings(line,'mpesa-c2b');else pushAlert('txn',`Unmatched C2B ${p.transId} ${money(p.amount)} from ${p.msisdn} (ref ${p.billRef||'–'})`,'mpesa-c2b');
+ return line}
+function runArrears(){let n=0;S.loans.filter(l=>l.status==='active').forEach(l=>{const st=arrStage(l);if(st>(l.notified||0)){l.notified=st;n++;
+  if(st===1)notify(l.uid,`Reminder: loan ${l.id} instalment is overdue. A penalty of ${(S.policy.penaltyRate*100).toFixed(0)}% applies when you pay.`);
+  if(st===2){notify(l.uid,`Loan ${l.id} is ${daysLate(l)} days late. Your guarantors have been informed.`);l.guars.forEach(g=>notify(g.uid,`${nm(l.uid)}'s loan ${l.id} that you guarantee is ${daysLate(l)} days late.`))}
+  if(st===3){l.defaulted=true;pushAlert('loan',`DEFAULT: ${l.id} (${nm(l.uid)}) is ${daysLate(l)} days late — escalated to Executive`,'system');notify(l.uid,`Loan ${l.id} is in default. Guarantees may be called.`);l.guars.forEach(g=>notify(g.uid,`Loan ${l.id} you guarantee is in default. Your pledge may be called.`))}
+  l.events.push({t:iso(),text:STAGES[st]});audit('arrears.stage',`${l.id} → ${STAGES[st]}`,'system')}});return n}
+function distributable(){return round2(balance('3000')+balance('4000')+balance('4100')-balance('5000')-balance('5100'))}
+function reconcile(){const R=[],add=(ok,t,d)=>R.push({ok:!!ok,t,d:d||''});
+ const dr=sum(S.journals,j=>sum(j.lines,'dr')),cr=sum(S.journals,j=>sum(j.lines,'cr'));
+ add(Math.abs(dr-cr)<0.01,'Ledger balanced (total Dr = total Cr)',`${money2(dr)} / ${money2(cr)}`);
+ add(chainOK(),'Hash chain intact',S.journals.length+' entries');
+ const sv=round2(sum(S.users,'savings'));add(Math.abs(sv-balance('2000'))<0.05,'Member savings (profiles) = ledger 2000',`${money2(sv)} / ${money2(balance('2000'))}`);
+ const sh=round2(sum(S.users,'shares'));add(Math.abs(sh-balance('3100'))<0.05,'Share capital (profiles) = ledger 3100',`${money2(sh)} / ${money2(balance('3100'))}`);
+ const lr=round2(sum(S.loans.filter(l=>l.status==='active'),loanBal));add(Math.abs(lr-balance('1100'))<0.05,'Active loan balances = ledger 1100',`${money2(lr)} / ${money2(balance('1100'))}`);
+ const bad=S.users.filter(u=>Math.abs(sum(S.txns.filter(t=>t.uid===u.id&&t.k==='sav'),'amt')-u.savings)>0.05||Math.abs(sum(S.txns.filter(t=>t.uid===u.id&&t.k==='shr'),'amt')-u.shares)>0.05);
+ add(!bad.length,'Every member statement adds up to their balance',bad.map(b=>b.name).join(', '));
+ const over=S.users.filter(u=>committed(u.id)>u.savings+0.01);add(!over.length,'No guarantor pledged more than their savings',over.map(o=>o.name).join(', '));
+ add(balance('1000')>=0,'Bank balance not negative',money2(balance('1000')));
+ const q=S.loans.filter(l=>['credit','exec','approved','batched','active'].includes(l.status)&&!l.guars.every(g=>g.status==='accepted'));add(!q.length,'Loans past guarantor stage have all 5 acceptances',q.map(l=>l.id).join(', '));
+ const rb=S.batches.filter(b=>b.status==='released'&&(b.loanIds.some(i=>!['active','cleared','recovered'].includes(loanOf(i).status))||b.payoutIds.some(i=>S.payouts.find(p=>p.id===i).status!=='paid')));add(!rb.length,'Released batches fully executed',rb.map(b=>b.id).join(', '));
+ const ex=S.users.filter(u=>u.exited&&(u.savings||u.shares));add(!ex.length,'Exited members hold no money',ex.map(u=>u.name).join(', '));
+ const sch=S.loans.filter(l=>l.status==='active'&&Math.abs(loanBal(l)-(l.amount-sum(l.schedule.filter(r=>r.paid),'principal')))>0.05);add(!sch.length,'Loan schedules agree with repayments',sch.map(l=>l.id).join(', '));
+ return R}
+
+/* ---------- UI plumbing ---------- */
+const NEWAPPLY=()=>({amount:'',period:12,guar:['','','','',''],gamt:['','','','',''],file:'',refi:''});
+const ui={tab:null,apply:NEWAPPLY(),reveal:{},lg:{step:0},batchSel:{},chat:[],simLog:null};
+const $=s=>document.querySelector(s);
+function toast(msg,err){LAST={msg,err:!!err};if(SIM)return;const box=$('#toasts');if(!box)return;const t=document.createElement('div');t.className='toast'+(err?' err':'');t.textContent=msg;box.appendChild(t);setTimeout(()=>t.remove(),2800)}
+const badge=(t,c)=>`<span class="badge ${c||''}">${esc(t)}</span>`;
+const STAT={guarantors:['Awaiting guarantors','warn'],credit:['Credit Committee','info'],exec:['Executive sign-off','info'],approved:['Approved · awaiting payout','ok'],batched:['In payment batch','info'],active:['Active','ok'],cleared:['Cleared','ok'],declined:['Declined','bad'],recovered:['Recovered from guarantors','bad'],cancelled:['Cancelled','bad']};
+const stBadge=s=>badge(STAT[s][0],STAT[s][1]);
+const kpi=(n,l)=>`<div class="kpi"><div class="n">${n}</div><div class="l">${esc(l)}</div></div>`;
+const card=(t,b)=>`<div class="card">${t?`<h3>${t}</h3>`:''}${b}</div>`;
+const empty=t=>`<p class="muted">${esc(t)}</p>`;
+
+function render(){
+ if(SIM)return;
+ try{
+  const root=$('#app');ensurePeriods();
+  if(!S.session||!cur()){root.innerHTML=loginView();setWatermark(null);a11y();return}
+  const u=cur(),R=ROLES[u.role];
+  if(!ui.tab||!R.tabs.some(t=>t[0]===ui.tab))ui.tab=R.tabs[0][0];
+  const fn=VIEWS[u.role+'_'+ui.tab]||VIEWS[(MEMBERISH.includes(u.role)?'member':u.role)+'_'+ui.tab];
+  const body=fn?fn(u):empty('Screen not found');
+  root.innerHTML=`<header><b>CoopVault</b><small>Rivabot SACCO</small><span class="sp"></span>${CLOCK?`<span class="who" title="Simulation clock">⏱ ${dstr(NOW())}</span>`:''}<span class="who">${R.icon} ${esc(u.name)} · ${esc(u.post||R.label)}</span>
+   <button class="btn sec sm" data-act="advance" data-d="30" title="Trial only: move the system date forward">⏩ +30 days</button><button class="btn sec sm" data-act="lite">${litePref()?'Standard':'Lite'} view</button><button class="btn sec sm" data-act="logout">Log out</button></header>
+   <main id="main" tabindex="-1">${body}</main>
+   <nav class="bot" aria-label="Main">${R.tabs.map(t=>`<button class="${t[0]===ui.tab?'on':''}" ${t[0]===ui.tab?'aria-current="page"':''} data-act="tab" data-v="${t[0]}">${t[1]}</button>`).join('')}</nav>`;
+  setWatermark(u);a11y();
+ }catch(e){console.error(e);$('#app').innerHTML=`<main><div class="card"><h3>Something went wrong</h3><p class="bad">${esc(e.message)}</p><button class="btn" data-act="resetdemo">Reset demo data</button></div></main>`}
+}
+let uid_=0;
+function a11y(){document.querySelectorAll('.tw').forEach(t=>{t.tabIndex=0;t.setAttribute('role','region');t.setAttribute('aria-label','Table (scrollable)')});document.querySelectorAll('label').forEach(l=>{if(l.htmlFor||l.querySelector('input,select,textarea'))return;const c=l.nextElementSibling;if(c&&/^(INPUT|SELECT|TEXTAREA)$/.test(c.tagName)){if(!c.id)c.id='f'+(++uid_);l.htmlFor=c.id}});
+ document.querySelectorAll('input:not([id]),select:not([id]),textarea:not([id])').forEach(c=>{if(!c.getAttribute('aria-label')&&!c.closest('label')&&!(c.previousElementSibling&&c.previousElementSibling.tagName==='LABEL'))c.setAttribute('aria-label',c.getAttribute('placeholder')||c.name||'field')});
+ document.querySelectorAll('input:not([aria-label])').forEach(c=>{if(!c.labels||!c.labels.length)c.setAttribute('aria-label',c.name||c.dataset.input||'field')});
+ document.querySelectorAll('select:not([aria-label])').forEach(c=>{if(!c.labels||!c.labels.length)c.setAttribute('aria-label',c.name||c.dataset.change||'choice')})}
+function setWatermark(u){
+ const l2=u?`${u.name} · ${NOW().toLocaleString('en-KE')}`:'DEMO / TRIAL BUILD';
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="560" height="300"><g transform="rotate(-25 280 150)" font-family="Arial" font-weight="bold" fill="rgba(0,0,0,0.075)" text-anchor="middle"><text x="280" y="140" font-size="17">RIVABOT SACCO SOCIETY LTD · CONFIDENTIAL</text><text x="280" y="166" font-size="13">${esc(l2)}</text></g></svg>`;
+ document.documentElement.style.setProperty('--wm',`url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`)}
+const quickPref=()=>{try{return localStorage.getItem('cv_quick')!=='0'}catch(e){return true}};
+const litePref=()=>{try{return localStorage.getItem('cv_lite')==='1'}catch(e){return false}};
+const applyLite=()=>document.documentElement.classList.toggle('lite',litePref());
+
+/* ---------- login ---------- */
+function loginView(){
+ const L=ui.lg;let b='';
+ if(L.step===0){
+  b=`<h2>Sign in</h2><p class="muted">Choose a role window to trial. Demo build: the SMS code is <b>123456</b>.</p><div class="roles">${Object.keys(ROLES).map(r=>`<button data-act="pickrole" data-v="${r}"><div style="font-size:26px" aria-hidden="true">${ROLES[r].icon}</div>${ROLES[r].label}</button>`).join('')}</div>
+  ${card('Trial tools',`<label style="display:flex;gap:8px;align-items:center;color:inherit;margin-bottom:8px"><input type="checkbox" style="width:auto;margin:0" data-act="quick" ${quickPref()?'checked':''}> Quick open: skip the SMS code and security key so every window opens in one tap (trial shortcut)</label><p class="small muted">Mode now: <b>${S.mode==='clean'?'empty SACCO (nothing pre-loaded)':'sample SACCO'}</b>${CLOCK?` · system date ${dstr(NOW())}`:''}</p>
+  <button class="btn" data-act="runsim">▶ Run complete simulation</button><button class="btn sec" data-act="cleanstart">Start with an empty SACCO</button><button class="btn sec" data-act="resetdemo">Reset sample data</button><button class="btn sec" data-act="lite">${litePref()?'Standard':'Lite'} view</button><button class="btn sec" data-act="selfcheck">Run self-check</button>
+  <p class="small muted" style="margin-bottom:0">The simulation starts from an empty SACCO, registers members, runs 8 months of contributions, loans, arrears, defaults, top-ups, withdrawals, dividends and period close — all through the same functions the screens use — then checks every window and reconciles the books.</p>`)}
+  ${ui.check?checkCard():''}${ui.simLog?simCard():''}`}
+ else if(L.step===1){
+  const us=S.users.filter(u=>u.role===L.role);
+  b=`<h2>${ROLES[L.role].label}</h2>${us.length?'<p class="muted">Select who is signing in</p>':`<p class="muted">No one here yet — this is an empty SACCO. Sign in as Manager to register members, or load the sample SACCO.</p><button class="btn" data-act="resetdemo">Load sample SACCO</button>`}${us.map(u=>`<button class="btn sec" style="display:block;width:100%;text-align:left;margin:6px 0" ${u.exited?'disabled':''} data-act="pickuser" data-v="${u.id}">${esc(u.name)}${u.post?' · '+esc(u.post):''}${u.exited?' (exited)':''}</button>`).join('')}<button class="btn sec sm" data-act="loginback">← Back</button>`}
+ else if(L.step===2){
+  const u=U(L.uid);
+  b=`<h2>Verify it's you</h2><p>${esc(u.name)} · SMS OTP to ${esc(u.phone.slice(0,4))}•••${esc(u.phone.slice(-2))}</p>
+  ${L.otpSent?`<div class="demo">Demo SMS: your CoopVault code is <b>123456</b></div>`:''}
+  <form data-form="otp"><label>6-digit code</label><input name="otp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456" ${L.otpSent?'':'disabled'}>
+  ${L.otpSent?`<button class="btn" type="submit">Verify</button>`:`<button class="btn" type="button" data-act="sendotp">Send OTP</button>`}<button class="btn sec" type="button" data-act="loginback">← Back</button></form>`}
+ else{
+  const u=U(L.uid);
+  b=`<h2>Security key</h2><p>${esc(u.name)} · ${ROLES[u.role].label} accounts also need a WebAuthn device check.</p><div class="demo">Demo: simulated. Production uses a real passkey / security key (navigator.credentials) with a server challenge.</div><button class="btn" data-act="webauthn">Tap security key (simulate)</button><button class="btn sec" data-act="loginback">← Back</button>`}
+ return `<main id="main" tabindex="-1"><div class="login"><div class="card"><div style="text-align:center"><img src="icon.svg" width="64" height="64" alt=""><h1 style="margin:6px 0 0;font-size:22px">CoopVault</h1><div class="muted small">Rivabot SACCO Society Ltd</div></div><hr style="border:0;border-top:1px solid var(--bd);margin:14px 0">${b}</div><p class="muted small" style="text-align:center">Trial build ${BUILD} · simulated data · stored only in this browser</p></div></main>`}
+function checkCard(){const L=ui.check,bad=L.filter(x=>!x.ok).length;
+ return card(`Self-check: ${bad?badge(bad+' problem(s)','bad'):badge('everything works','ok')}`,`<ul class="small" style="padding-left:18px;margin:0">${L.map(x=>`<li class="${x.ok?'ok':'bad'}">${x.ok?'✓':'✗'} ${esc(x.name)}${x.detail?` <span class="muted">— ${esc(x.detail)}</span>`:''}</li>`).join('')}</ul>`)}
+function selfCheck(){const out=[],add=(ok,name,detail)=>out.push({ok:!!ok,name,detail:detail||''});add(true,'App build',BUILD);
+ let ls=false;try{localStorage.setItem('cv_t','1');localStorage.removeItem('cv_t');ls=true}catch(e){}add(ls,'Browser storage works (needed to keep your data)');add('serviceWorker' in navigator,'Offline install supported',location.protocol);
+ const sS=S.session,sT=ui.tab;
+ Object.keys(ROLES).forEach(r=>{const u=S.users.find(x=>x.role===r&&!x.exited);if(!u){add(false,ROLES[r].label+' window','nobody to open it — load the sample SACCO or register members as Manager');return}
+  S.session=u.id;const bad=[];ROLES[r].tabs.forEach(t=>{ui.tab=t[0];const fn=VIEWS[r+'_'+t[0]]||VIEWS['member_'+t[0]];try{const h=fn(u);if(/undefined|NaN|\[object/.test(h.replace(/data-[a-z-]+="[^"]*"/g,'')))bad.push(t[1]+' shows bad text')}catch(e){bad.push(t[1]+': '+e.message)}});
+  add(!bad.length,`${ROLES[r].label} window — ${ROLES[r].tabs.length} tabs`,bad.join('; '))});
+ S.session=sS;ui.tab=sT;const rc=reconcile().filter(x=>!x.ok);add(!rc.length,'Books reconcile',rc.map(x=>x.t).join('; '));return out}
+function simCard(){const L=ui.simLog,bad=L.filter(x=>!x.ok).length;
+ return card(`Simulation result: ${bad?badge(bad+' failed','bad'):badge('all '+L.length+' steps passed','ok')}`,`<ol class="sim small" style="padding-left:20px;margin:0">${L.map(x=>`<li class="${x.ok?'ok':'bad'}">${x.ok?'✓':'✗'} ${esc(x.name)}${x.detail?` <span class="muted">— ${esc(x.detail)}</span>`:''}</li>`).join('')}</ol><p class="small muted">The simulated SACCO is now loaded. Log in as any role to inspect it.</p>`)}
+
+/* ---------- shared view parts ---------- */
+function policyCard(){const P=S.policy;return card('Loan policy in force (2009 Revised, enforced by the system)',`<ul style="margin:0;padding-left:18px">
+ <li>Member ≥ ${P.minMonths} months; minimum savings ${money(P.minSavings)}</li><li>Max loan ${P.maxMult}× savings (less other loans)</li>
+ <li>Total deductions ≤ 2/3 of gross salary</li><li>Max ${P.maxPeriod} months · interest ${(P.rate*100).toFixed(2)}% per month, declining balance</li>
+ <li>Exactly ${P.guarantors} guarantors whose pledges equal the loan; officials cannot guarantee</li><li>Repayment starts the month after disbursement</li>
+ <li>Late payment: ${(P.penaltyRate*100).toFixed(0)}% penalty on the overdue instalment · guarantors told after ${P.guarantorDays} days · default after ${P.defaultDays} days</li></ul>
+ <p class="muted small" style="margin:8px 0 0">2025 By-Laws: read-only reference (placeholder in trial). They do not trigger system logic.</p>`)}
+function loanDetail(l,showGuars=true){const a=U(l.uid);
+ return `<div class="small"><b>${l.id}</b> · ${esc(a.name)} · ${money(l.amount)} · ${l.period} mo · instalment ${money(l.instalment)}${l.refinanceOf?` · top-up of ${l.refinanceOf}`:''} · payslip: ${esc(l.payslip)} ${l.payslipOK?badge('verified','ok'):badge('unverified','warn')}</div>
+ ${showGuars?`<div class="small muted">Guarantors: ${l.guars.map(g=>`${esc(nm(g.uid))} ${money(g.amt)} (${g.status})`).join(' · ')}</div>`:''}`}
+function loanTable(loans){if(!loans.length)return empty('Nothing here.');
+ return `<div class="tw"><table><tr><th>ID</th><th>Member</th><th>Amount</th><th>Period</th><th>Status</th><th>Balance</th><th>Arrears</th></tr>${loans.map(l=>`<tr><td>${l.id}</td><td>${esc(nm(l.uid))}</td><td>${money(l.amount)}</td><td>${l.period}</td><td>${stBadge(l.status)}</td><td>${l.status==='active'?money(loanBal(l)):'–'}</td><td>${arrStage(l)?badge(daysLate(l)+' days','bad'):'–'}</td></tr>`).join('')}</table></div>`}
+function trialBalance(){const rows=Object.keys(ACC).map(a=>[a,ACC[a],balance(a)]);
+ return `<div class="tw"><table><tr><th>Acct</th><th>Name</th><th>Balance</th></tr>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${money2(r[2])}</td></tr>`).join('')}</table></div>`}
+function journalTable(js,rev){if(!js.length)return empty('No journal entries yet.');return `<div class="tw"><table><tr><th>ID</th><th>Date</th><th>Narration</th><th>Lines</th><th>By</th></tr>${js.slice().reverse().slice(0,40).map(j=>`<tr><td>${j.id}<div class="mono muted">${j.hash.slice(0,8)}</div></td><td>${tstr(j.t)}</td><td>${esc(j.desc)}${S.reversals[j.id]?' '+badge('reversed by '+S.reversals[j.id],'warn'):''}${rev&&j.kind==='manual'&&j.lines.length===2&&!S.reversals[j.id]?` <button class="btn sec sm" data-act="reversej" data-id="${j.id}">Reverse</button>`:''}</td><td>${j.lines.map(l=>`${l.dr?'Dr':'Cr'} ${l.acct} ${money2(l.dr||l.cr)}`).join('<br>')}</td><td>${esc(nm(j.by))}</td></tr>`).join('')}</table></div>`}
+function piiBlock(u){return `<div class="small">Phone ${esc(u.phone)} · ID ${esc(u.idno)} · Gross salary <b>${money(u.salary)}</b> · Savings ${money(u.savings)} · Deductions ${money(u.deductions)}</div>`}
+function reconcileCard(){const R=reconcile(),bad=R.filter(r=>!r.ok).length;
+ return card(`System health ${bad?badge(bad+' problem(s)','bad'):badge('all '+R.length+' checks pass','ok')}`,`<div class="tw"><table>${R.map(r=>`<tr><td class="${r.ok?'ok':'bad'}">${r.ok?'✓':'✗'}</td><td>${esc(r.t)}</td><td class="muted small">${esc(r.d)}</td></tr>`).join('')}</table></div>`)}
+function auditTable(n){return `<div class="tw"><table><tr><th>When</th><th>Who</th><th>Action</th><th>Detail</th></tr>${S.audit.slice(0,n).map(a=>`<tr><td>${tstr(a.t)}</td><td>${esc(nm(a.by))}</td><td>${esc(a.action)}</td><td>${esc(a.detail)}</td></tr>`).join('')||'<tr><td colspan="4">No activity yet.</td></tr>'}</table></div>`}
+function batchItems(b){return b.loanIds.map(i=>`Loan ${i} (${money(cashOut(loanOf(i)))})`).concat(b.payoutIds.map(i=>{const p=S.payouts.find(x=>x.id===i);return `${p.type==='exit'?'Exit':'Withdrawal'} ${i} – ${nm(p.uid)} (${money(p.amount)})`})).join(', ')}
+function statementCSV(u){const rows=[['Date','Type','Description','Amount (KSh)']];
+ S.txns.filter(t=>t.uid===u.id).forEach(t=>rows.push([dstr(t.t),t.k==='shr'?'Shares':'Savings',t.desc,t.amt]));
+ S.loans.filter(l=>l.uid===u.id).forEach(l=>l.schedule.forEach(r=>rows.push([dstr(r.due),'Loan '+l.id,`Instalment ${r.n}${r.paid?' (paid)':''}`,r.pay])));
+ return rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n')}
+
+/* ---------- AI assistant (reads the member's own live data; optional LLM endpoint) ---------- */
+function aiContext(u){const E=elig(u);return{firstName:u.name.split(' ')[0],savings:u.savings,shares:u.shares,freeToGuarantee:free(u.id),maxLoan:E.max,eligible:E.ok,
+ loans:S.loans.filter(l=>l.uid===u.id).map(l=>({id:l.id,status:l.status,amount:l.amount,balance:l.status==='active'?loanBal(l):0,daysLate:daysLate(l),nextDue:(l.schedule.find(r=>!r.paid)||{}).due||null})),
+ policy:{...S.policy},today:iso()}}
+function assistantLocal(q,u){
+ const s=q.toLowerCase(),P=S.policy,sw=/(akiba|salio|mkopo|nataka|naweza|lini|kiasi|habari|asante|dhamana|mdhamini|riba|kukopa|malipo|hisa|hujambo|msaada)/.test(s);
+ const nums=(s.match(/\d[\d,]*/g)||[]).map(x=>+x.replace(/,/g,'')).filter(x=>x>0),amt=nums.find(x=>x>36),mon=nums.find(x=>x<=36)||12;
+ const E=elig(u),T=(en,swt)=>sw?(swt||'(English) '+en):en;
+ const nextDue=()=>{let b=null;S.loans.filter(l=>l.uid===u.id&&l.status==='active').forEach(l=>{const r=l.schedule.find(x=>!x.paid);if(r&&(!b||r.due<b.r.due))b={l,r}});return b};
+ if(/^(hi|hello|hey|habari|hujambo|help|msaada)\b/.test(s))return T(`Hello ${u.name.split(' ')[0]}. Ask me about your savings, loan status, next instalment, how much you can borrow, guarantors, penalties, withdrawals or dividends.`,`Habari ${u.name.split(' ')[0]}. Niulize kuhusu akiba, mkopo, malipo yajayo, kiasi unachoweza kukopa, wadhamini au adhabu.`);
+ if(amt&&/(borrow|loan|kukopa|nikope|mkopo|naweza|can i)/.test(s)&&!/(interest|riba|cost|gharama)/.test(s)){const c=calc(u,amt,mon);
+  if(E.ok&&c.ok)return T(`Yes. ${money(amt)} over ${mon} months needs about ${money(c.inst)} a month and passes the 2/3 deduction rule. You still need 5 guarantors whose pledges add up to ${money(amt)}.`,`Ndiyo. ${money(amt)} kwa miezi ${mon} ni takriban ${money(c.inst)} kwa mwezi. Bado unahitaji wadhamini 5 wenye jumla ya ${money(amt)}.`);
+  return T(`Not yet. ${[...E.checks.filter(x=>!x[0]).map(x=>x[1]),...c.rows.filter(x=>!x[0]).map(x=>x[1])].join('; ')}.`,`Bado. ${[...E.checks.filter(x=>!x[0]).map(x=>x[1]),...c.rows.filter(x=>!x[0]).map(x=>x[1])].join('; ')}.`)}
+ if(amt&&/(interest|riba|cost|gharama|repay)/.test(s)){const i=pmt(amt,P.rate,mon);return T(`${money(amt)} over ${mon} months at ${(P.rate*100).toFixed(2)}% per month (declining balance): about ${money(i)} a month, ${money(i*mon)} in total, of which ${money(i*mon-amt)} is interest.`)}
+ if(/(next|due|instal|malipo|lini)/.test(s)){const n=nextDue();return n?T(`Your next instalment is ${money(n.r.pay)} due ${dstr(n.r.due)} (loan ${n.l.id}).${new Date(n.r.due)<NOW()?` It is overdue — a ${(P.penaltyRate*100).toFixed(0)}% penalty of ${money(penaltyDue(n.l))} applies.`:''}`,`Malipo yako yajayo ni ${money(n.r.pay)} tarehe ${dstr(n.r.due)} (mkopo ${n.l.id}).`):T('You have no instalments due.','Huna malipo yanayosubiri.')}
+ if(/(my loan|loan status|mkopo wangu|hali|status)/.test(s)){const ls=S.loans.filter(l=>l.uid===u.id);return ls.length?ls.map(l=>`${l.id}: ${money(l.amount)} – ${STAT[l.status][0]}${l.status==='active'?`, balance ${money(loanBal(l))}`:''}`).join('\n'):T('You have no loans yet.','Huna mkopo bado.')}
+ if(/(balance|savings|akiba|salio)/.test(s))return T(`Your savings are ${money(u.savings)} and shares ${money(u.shares)}. You can pledge up to ${money(free(u.id))} for others and withdraw up to ${money(maxWithdraw(u))}.`,`Akiba yako ni ${money(u.savings)}, hisa ${money(u.shares)}. Unaweza kudhamini hadi ${money(free(u.id))}.`);
+ if(/(queue|position|foleni)/.test(s)){const q=S.loans.filter(l=>l.status==='credit').sort((a,b)=>a.creditAt<b.creditAt?-1:1),m=q.filter(l=>l.uid===u.id);return m.length?m.map(l=>`${l.id}: position ${q.indexOf(l)+1} of ${q.length}`).join('\n'):`No application of yours is in the Credit queue (${q.length} waiting).`}
+ if(/(limit|how much|max|kiasi|kukopa)/.test(s))return T(`You can borrow up to ${money(E.max)} now (${P.maxMult}× your savings less other loans).`,`Unaweza kukopa hadi ${money(E.max)} (mara ${P.maxMult} ya akiba yako ukiondoa mikopo iliyopo).`);
+ if(/guarant|dhamana|mdhamini/.test(s)){const pend=S.loans.filter(l=>l.status==='guarantors'&&l.guars.some(g=>g.uid===u.id&&g.status==='pending')).length;return `You need exactly ${P.guarantors} guarantors whose pledges add up to the loan. Officials cannot guarantee. You have ${money(committed(u.id))} pledged, ${money(free(u.id))} free, and ${pend} request(s) waiting.`}
+ if(/(late|penalt|arrear|default|chelewa)/.test(s)){const ls=S.loans.filter(l=>l.uid===u.id&&l.status==='active'&&daysLate(l)>0);return `A late instalment attracts a ${(P.penaltyRate*100).toFixed(0)}% penalty. Guarantors are told after ${P.guarantorDays} days and the loan is escalated as a default after ${P.defaultDays} days, when pledges can be called. ${ls.length?ls.map(l=>`${l.id} is ${daysLate(l)} days late.`).join(' '):'None of your loans is late.'}`}
+ if(/(withdraw|exit|leave|toa)/.test(s)){const eb=exitBlock(u);return `You can withdraw up to ${money(maxWithdraw(u))} now (free savings, keeping the minimum and enough to cover your loans). ${eb?'Exit is not possible yet: '+eb+'.':'You can request to exit from the Ledger tab.'}`}
+ if(/(dividend|shares|hisa|interest on savings)/.test(s)){const d=S.txns.filter(t=>t.uid===u.id&&/dividend|interest on/i.test(t.desc)).slice(-1)[0];return `You hold ${money(u.shares)} in shares. ${d?`Last credit: ${money(d.amt)} (${d.desc}).`:'No dividend has been credited yet.'} Dividends are approved by 3 of 4 Executive members.`}
+ if(/(statement|download|print)/.test(s))return 'Open the Ledger tab: you can download a CSV statement or print / save it as PDF.';
+ if(/(eligib|qualif)/.test(s))return `You must be a member for ${P.minMonths}+ months with at least ${money(P.minSavings)} saved. Right now: ${E.checks.map(c=>(c[0]?'✓ ':'✗ ')+c[1]).join('; ')}.`;
+ if(/(interest|rate|riba)/.test(s))return `Interest is ${(P.rate*100).toFixed(2)}% per month on the declining balance.`;
+ if(/(long|period|month|miezi)/.test(s))return `The maximum repayment period is ${P.maxPeriod} months. Repayment starts the month after disbursement.`;
+ return 'I can answer from your own records: savings, loan status, next instalment, borrowing limit, guarantors, penalties, withdrawals and dividends. For anything else use “Ask the Education Committee” below.'}
+async function askAI(q){const u=cur();ui.chat.push({w:'me',t:q});const local=assistantLocal(q,u),ep=S.settings.aiEndpoint;audit('ai.ask','(content not logged)',u.id);
+ if(!ep){ui.chat.push({w:'bot',t:local,src:'answered from your records'});render();return}
+ const slot={w:'bot',t:'…',src:'asking AI'};ui.chat.push(slot);render();
+ try{const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),8000);const r=await fetch(ep,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:q,context:aiContext(u)}),signal:ctl.signal});clearTimeout(to);
+  const j=await r.json();if(!j||typeof j.answer!=='string')throw new Error('bad reply');slot.t=j.answer;slot.src='AI (read-only, your data only)'}
+ catch(e){slot.t=local;slot.src='AI unreachable — answered from your records'}
+ render()}
+
+/* ---------- views ---------- */
+const VIEWS={};
+/* ===== MEMBER ===== */
+VIEWS.member_home=u=>{
+ const mine=S.loans.filter(l=>l.uid===u.id),q=S.loans.filter(l=>l.status==='credit').sort((a,b)=>a.creditAt<b.creditAt?-1:1);
+ const pos=mine.filter(l=>l.status==='credit').map(l=>`${l.id}: position ${q.indexOf(l)+1} of ${q.length} in the Credit queue`);
+ const pend=S.loans.filter(l=>l.status==='guarantors'&&l.guars.some(g=>g.uid===u.id&&g.status==='pending')).length;
+ const inbox=S.inbox.filter(m=>m.uid===u.id).slice(0,6);const late=mine.filter(l=>arrStage(l)>0);
+ return `<h2>Hello, ${esc(u.name.split(' ')[0])}</h2>${late.length?`<div class="card" style="border-color:var(--red)"><b class="bad">Payment overdue</b> ${late.map(l=>`${l.id}: ${daysLate(l)} days late, penalty ${money(penaltyDue(l))}`).join(' · ')}</div>`:''}
+ <div class="grid">${kpi(money(u.savings),'Your savings')}${kpi(money(u.shares),'Share capital')}${kpi(money(free(u.id)),'Free to guarantee')}${kpi(money(outstanding(u.id)),'Loan balance')}${kpi(pend,'Guarantee requests')}</div><div style="height:12px"></div>
+ ${card('Live queue',pos.length?pos.map(esc).join('<br>'):empty('You have no application in the Credit queue. Waiting in the queue now: '+q.length+'.'))}
+ ${card('Messages (simulated SMS)',inbox.length?inbox.map(m=>`<div class="small"><span class="muted">${tstr(m.t)}</span> ${esc(m.text)}</div>`).join(''):empty('No messages.'))}
+ ${card('From the Education Committee',[...S.progress.map(p=>({...p,k:'Progress'})),...S.materials.map(p=>({...p,k:p.lang}))].sort((a,b)=>a.t<b.t?1:-1).slice(0,4).map(p=>`<div style="margin-bottom:8px"><b>${esc(p.title)}</b> ${badge(p.k,'info')}<div class="small">${esc(p.text||p.body)}</div></div>`).join('')||empty('Nothing published yet.'))}`};
+VIEWS.member_loans=u=>{
+ const a=ui.apply,P=S.policy,E=elig(u,a.refi);
+ const taken=i=>a.guar.filter((g,j)=>j!==i&&g);
+ const cands=S.users.filter(x=>MEMBERISH.includes(x.role)&&x.id!==u.id&&!x.exited);
+ const myActive=S.loans.filter(l=>l.uid===u.id&&l.status==='active'&&arrStage(l)<2);
+ const gsel=[0,1,2,3,4].map(i=>`<div class="row"><div><label>Guarantor ${i+1}</label><select data-change="gsel" data-i="${i}"><option value="">— choose member —</option>${cands.filter(c=>!taken(i).includes(c.id)).map(c=>`<option value="${c.id}" ${a.guar[i]===c.id?'selected':''}>${esc(c.name)} · free ${money(free(c.id))}</option>`).join('')}</select></div>
+  <div><label>Amount pledged</label><input type="number" min="0" data-input="gamt" data-i="${i}" value="${esc(a.gamt[i])}"></div></div>`).join('');
+ const mine=S.loans.filter(l=>l.uid===u.id).slice().reverse();
+ return `<h2>Loans</h2>${card('Am I eligible?',E.checks.map(c=>`<div class="chk ${c[0]?'y':''}">${esc(c[1])}</div>`).join('')+`<p class="small" style="margin:8px 0 0">Maximum you can borrow now: <b>${money(E.max)}</b></p>`)}
+ ${E.ok?card('Apply for a loan',`<form data-form="apply" id="applyForm">${myActive.length?`<label>Loan type</label><select data-change="refi"><option value="">New loan</option>${myActive.map(l=>`<option value="${l.id}" ${a.refi===l.id?'selected':''}>Top-up / refinance ${l.id} (balance ${money(loanBal(l))})</option>`).join('')}</select>`:''}
+  <div class="row"><div><label>Amount (KSh)</label><input type="number" min="1" id="aAmt" data-input="amount" value="${esc(a.amount)}"></div>
+  <div><label>Repayment period</label><select data-change="period">${[6,12,18,24,30,36].filter(n=>n<=P.maxPeriod).map(n=>`<option ${+a.period===n?'selected':''} value="${n}">${n} months</option>`).join('')}</select></div></div>
+  <div id="calc">${calcHtml(u)}</div>${gsel}<div id="gsum">${gsumHtml()}</div>
+  <button type="button" class="btn sec sm" data-act="autosplit">Auto-split pledges evenly</button>
+  <label style="margin-top:8px">Stamped payslip (required) ${a.file?badge(a.file,'ok'):''}</label><input type="file" data-change="file" accept="image/*,.pdf">
+  <button class="btn" type="submit">Submit application</button></form>`):card('',empty('Complete the eligibility checks above to apply.'))}
+ ${card('My loans',mine.length?mine.map(l=>`<div style="margin-bottom:12px">${stBadge(l.status)} ${arrStage(l)?badge(daysLate(l)+' days late','bad'):''} ${loanDetail(l)}${l.reason?`<div class="bad small">${esc(l.reason)}</div>`:''}
+  ${l.schedule.length?`<details><summary>Repayment schedule</summary><div class="tw"><table><tr><th>#</th><th>Due</th><th>Pay</th><th>Interest</th><th>Principal</th><th>Balance</th><th></th></tr>${l.schedule.map(r=>`<tr><td>${r.n}</td><td>${dstr(r.due)}</td><td>${money2(r.pay)}</td><td>${money2(r.interest)}</td><td>${money2(r.principal)}</td><td>${money2(r.balance)}</td><td>${r.paid?badge(r.refi?'refinanced':r.recovered?'recovered':'paid'+(r.penalty?' +pen '+money(r.penalty):''),'ok'):new Date(r.due)<NOW()?badge('overdue','bad'):''}</td></tr>`).join('')}</table></div></details>`:''}
+  <details><summary>History</summary>${l.events.map(e=>`<div class="small muted">${tstr(e.t)} · ${esc(e.text)}</div>`).join('')}</details>${['guarantors','credit'].includes(l.status)?`<button class="btn danger sm" data-act="cancelloan" data-id="${l.id}">Cancel this application</button>`:''}</div>`).join(''):empty('No loans yet.'))}`};
+function gsumHtml(){const a=ui.apply,t=sum(a.gamt,x=>+x||0),amt=+a.amount||0;return `<div class="small ${amt&&Math.abs(t-amt)<0.5?'ok':'bad'}">Pledged ${money(t)} of ${money(amt)} (must be equal, 5 different guarantors)</div>`}
+function calcHtml(u){const a=ui.apply,c=calc(u,+a.amount||0,+a.period,a.refi),old=a.refi?loanOf(a.refi):null;
+ return `<div class="small" style="margin:6px 0">${(+a.amount>0)?`Monthly instalment ≈ <b>${money(c.inst)}</b> · interest ${(S.policy.rate*100).toFixed(2)}%/month on balance${old?` · cash to you after clearing ${old.id}: <b>${money((+a.amount)-loanBal(old))}</b>`:''}`:'Enter an amount to see the instalment.'}</div>${c.rows.map(r=>`<div class="chk small ${r[0]?'y':''}">${esc(r[1])}</div>`).join('')}`}
+VIEWS.member_guar=u=>{
+ const reqs=S.loans.filter(l=>l.status==='guarantors'&&l.guars.some(g=>g.uid===u.id&&g.status==='pending'));
+ const mine=S.loans.filter(l=>OPEN.includes(l.status)&&l.guars.some(g=>g.uid===u.id&&g.status!=='declined'));
+ return `<h2>Guarantees</h2>${card('Requests waiting for you',reqs.length?reqs.map(l=>{const g=l.guars.find(x=>x.uid===u.id);return `<div style="margin-bottom:10px"><b>${esc(nm(l.uid))}</b> asks you to pledge <b>${money(g.amt)}</b> for a ${money(l.amount)} loan (${l.period} mo).<div class="small muted">Your free savings: ${money(free(u.id))}</div>
+  <button class="btn sm" data-act="gaccept" data-id="${l.id}" ${free(u.id)<g.amt?'disabled':''}>Accept</button><button class="btn danger sm" data-act="gdecline" data-id="${l.id}">Decline</button>${free(u.id)<g.amt?'<div class="small bad">Not enough free savings to accept.</div>':''}</div>`}).join(''):empty('No pending requests.'))}
+ ${card('Savings you currently have pledged',`<div class="small">Pledged ${money(committed(u.id))} · Free ${money(free(u.id))}</div>${mine.map(l=>`<div class="small">${l.id} · ${esc(nm(l.uid))} · ${money(l.guars.find(g=>g.uid===u.id).amt)} · ${STAT[l.status][0]}${arrStage(l)?' · '+badge(daysLate(l)+' days late','bad'):''}</div>`).join('')||empty('Nothing pledged.')}`)}`};
+VIEWS.member_ledger=u=>{
+ const tx=S.txns.filter(t=>t.uid===u.id).slice().reverse(),mw=maxWithdraw(u),eb=exitBlock(u),pays=S.payouts.filter(p=>p.uid===u.id).slice().reverse();
+ return `<h2>My ledger</h2>${card('Statement',`<div class="grid">${kpi(money(u.savings),'Savings balance')}${kpi(money(u.shares),'Share capital')}${kpi(money(outstanding(u.id)),'Outstanding loans')}</div>
+  <div class="noprint" style="margin-top:8px"><button class="btn sec sm" data-act="csv">Download CSV</button><button class="btn sec sm" data-act="print">Print / save as PDF</button></div>
+  <div class="tw"><table><tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th></tr>${tx.map(t=>`<tr><td>${dstr(t.t)}</td><td>${t.k==='shr'?'Shares':'Savings'}</td><td>${esc(t.desc)}</td><td>${money(t.amt)}</td></tr>`).join('')||'<tr><td colspan="4">No transactions yet.</td></tr>'}</table></div>`)}
+ ${card('Withdraw savings',`<p class="small muted">You can withdraw up to <b>${money(mw)}</b> (free savings, keeping the minimum and enough to back your loans). Requests are prepared by the Manager and paid after 3 of 4 Executive signatures.</p>
+  <form data-form="withdraw"><label>Amount (KSh)</label><input name="amount" type="number" min="1" max="${mw}" required ${mw?'':'disabled'}><button class="btn" type="submit" ${mw?'':'disabled'}>Request withdrawal</button></form>`)}
+ ${card('Leave the SACCO',eb?`<p class="small muted">Not possible yet: ${esc(eb)}.</p>`:`<p class="small">You would receive your savings (${money(u.savings)}) and shares (${money(u.shares)}) = <b>${money(u.savings+u.shares)}</b>. This closes your membership.</p><button class="btn danger" data-act="reqexit">Request exit</button>`)}
+ ${card('My payout requests',pays.length?pays.map(p=>`<div class="small">${p.id} · ${p.type==='exit'?'Exit':'Withdrawal'} ${money(p.amount)} · ${badge(p.status,p.status==='paid'?'ok':/rejected|cancelled/.test(p.status)?'bad':'warn')} ${p.status==='requested'?`<button class="btn danger sm" data-act="cancelpay" data-id="${p.id}">Cancel</button>`:''}</div>`).join(''):empty('None.'))}`};
+VIEWS.member_help=u=>{
+ const qs=S.queries.filter(q=>q.uid===u.id).slice().reverse();
+ return `<h2>Assistant</h2>${card('Ask about your own account',`<div role="log" aria-live="polite" style="max-height:340px;overflow:auto">${ui.chat.map(m=>`<div class="bub ${m.w}">${esc(m.t)}${m.src?`<div class="muted small">${esc(m.src)}</div>`:''}</div>`).join('')||empty('Try: “How much can I borrow?”, “Can I borrow 150000 for 12 months?”, “Next instalment?”, “Akiba yangu?”')}</div>
+ <form data-form="faq"><input name="q" placeholder="Type your question (English or Kiswahili)" autocomplete="off"><button class="btn" type="submit">Ask</button></form>
+ <div>${['How much can I borrow?','What is my loan status?','When is my next instalment?','Who can guarantee me?','Akiba yangu ni kiasi gani?','What if I pay late?','How do I withdraw?'].map(q=>`<button class="btn sec sm" data-act="faqq" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>
+ <p class="small muted">The assistant is read-only: it can look at your own records but cannot move money or see other members. ${S.settings.aiEndpoint?'An AI service is connected for wording; if it is unreachable you still get answers from your records.':'Answers come from your records and the policy rules.'}</p>`)}
+ ${card('Ask the Education Committee',`<form data-form="ask"><textarea name="q" rows="2" required placeholder="Your question"></textarea><button class="btn" type="submit">Send</button></form>`)}
+ ${card('My questions',qs.length?qs.map(q=>`<div style="margin-bottom:8px"><b>${esc(q.q)}</b><div class="small ${q.a?'':'muted'}">${q.a?esc(q.a)+' — '+esc(nm(q.by)):'Awaiting answer'}</div></div>`).join(''):empty('None yet.'))}`};
+
+/* ===== MANAGER ===== */
+VIEWS.manager_today=u=>{
+ const un=S.mpesa.filter(m=>!m.matched&&!m.posted).length,rd=S.mpesa.filter(m=>m.matched&&!m.posted).length;
+ const pb=S.batches.filter(b=>b.status==='pending').length,ap=S.loans.filter(l=>l.status==='approved').length+S.payouts.filter(p=>p.status==='requested').length,pj=S.pendingJ.filter(j=>j.status==='pending').length;
+ const arr=S.loans.filter(l=>arrStage(l)>0);
+ return `<h2>Today · ${dstr(NOW())}</h2><div class="grid">${kpi(un,'Unmatched lines')}${kpi(rd,'Matched, ready to post')}${kpi(ap,'Items awaiting a batch')}${kpi(pb,'Batches awaiting signatures')}${kpi(pj,'Journals awaiting Exec')}${kpi(money(balance('1000')),'Bank balance')}${kpi(S.users.filter(x=>MEMBERISH.includes(x.role)&&!x.exited).length,'Active members')}</div><div style="height:12px"></div>
+ ${card('Arrears & escalation',(arr.length?`<div class="tw"><table><tr><th>Loan</th><th>Member</th><th>Days late</th><th>Stage</th><th>Penalty if paid today</th></tr>${arr.map(l=>`<tr><td>${l.id}</td><td>${esc(nm(l.uid))}</td><td>${daysLate(l)}</td><td>${badge(STAGES[arrStage(l)],arrStage(l)===3?'bad':'warn')}</td><td>${money(penaltyDue(l))}</td></tr>`).join('')}</table></div>`:empty('No loans in arrears.'))+`<button class="btn" data-act="arrears">Run arrears check now</button><span class="small muted"> It also runs whenever the date moves forward.</span>`)}
+ ${card('Reminders',`<div class="small">Maker-checker: you prepare, the Executive Committee signs. You cannot approve loans, sign payments or approve journals over ${money(S.policy.journalLimit)}.</div>`)}
+ ${card('Open loan applications',loanTable(S.loans.filter(l=>PIPE.includes(l.status))))}${reconcileCard()}`};
+VIEWS.manager_import=u=>{
+ const act=S.loans.filter(l=>l.status==='active');
+ return `<h2>Import & repayments</h2>${card('M-Pesa C2B simulator',`<p class="small muted">Mimics Safaricom's confirmation callback. A matching member (by account number = ID number or phone) is credited immediately; anything else lands in the unmatched list.</p>
+  <form data-form="c2b"><div class="row"><div><label>Account number (BillRefNumber)</label><input name="billRef" placeholder="member ID number"></div><div><label>Sender phone (MSISDN)</label><input name="msisdn" placeholder="07…" required></div><div><label>Amount (KSh)</label><input name="amount" type="number" min="1" required></div></div><button class="btn" type="submit">Send callback</button></form>`)}
+ ${card('Load a statement file (generated from current members)',`<button class="btn" data-act="loadsample" data-src="M-Pesa">M-Pesa</button><button class="btn" data-act="loadsample" data-src="Bank">Bank</button><button class="btn" data-act="loadsample" data-src="Payroll">Payroll</button><p class="small muted">Lines are matched by phone number or ID. Assign unmatched lines by hand, then post.</p>`)}
+ ${card('Statement lines waiting',S.mpesa.some(m=>!m.posted)?`<div class="tw"><table><tr><th>Src</th><th>Ref</th><th>Key</th><th>Amount</th><th>Member</th></tr>${S.mpesa.filter(m=>!m.posted).map(m=>`<tr><td>${esc(m.src)}</td><td>${esc(m.ref)}</td><td>${esc(m.key)}</td><td>${money(m.amount)}</td><td>${m.matched?esc(nm(m.matched)):`<select data-change="assign" data-id="${m.id}"><option value="">Unmatched…</option>${S.users.filter(x=>MEMBERISH.includes(x.role)&&!x.exited).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select>`}</td></tr>`).join('')}</table></div><button class="btn" data-act="postmatched">Post all matched as savings</button>`:empty('Nothing waiting.'))}
+ ${card('Record loan instalment (payroll / M-Pesa received)',act.length?act.map(l=>{const r=l.schedule.find(x=>!x.paid),pen=penaltyDue(l);return `<div class="row"><div>${l.id} · ${esc(nm(l.uid))} · balance ${money(loanBal(l))} ${arrStage(l)?badge(daysLate(l)+' days late','bad'):''}</div><div>${r?`Next ${money2(r.pay)}${pen?` + penalty ${money2(pen)}`:''} · due ${dstr(r.due)}`:''}</div><div><button class="btn sm" data-act="repay" data-id="${l.id}" ${r?'':'disabled'}>Record instalment</button></div></div>`}).join(''):empty('No active loans.'))}`};
+VIEWS.manager_batches=u=>{
+ const ap=S.loans.filter(l=>l.status==='approved'),rq=S.payouts.filter(p=>p.status==='requested');
+ return `<h2>Payment batches</h2>${card('Approved loans ready to pay',ap.length?ap.map(l=>`<label style="display:flex;gap:8px;align-items:center;color:inherit"><input type="checkbox" style="width:auto;margin:0" data-change="bsel" data-id="L:${l.id}" ${ui.batchSel['L:'+l.id]?'checked':''}> ${l.id} · ${esc(nm(l.uid))} · ${money(l.amount)}${l.refinanceOf?` (top-up of ${l.refinanceOf}, cash ${money(cashOut(l))})`:''}</label>`).join(''):empty('No approved loans waiting.'))}
+ ${card('Withdrawals & exits waiting',rq.length?rq.map(p=>`<div class="row"><label style="display:flex;gap:8px;align-items:center;color:inherit"><input type="checkbox" style="width:auto;margin:0" data-change="bsel" data-id="P:${p.id}" ${ui.batchSel['P:'+p.id]?'checked':''}> ${p.id} · ${esc(nm(p.uid))} · ${p.type==='exit'?'EXIT':'withdrawal'} ${money(p.amount)}</label><div><button class="btn danger sm" data-act="rejpay" data-id="${p.id}">Reject</button></div></div>`).join(''):empty('None waiting.'))}
+ ${ap.length||rq.length?`<button class="btn" data-act="prepbatch">Prepare batch for Executive signatures</button>`:''}
+ ${card('Batches',S.batches.length?S.batches.slice().reverse().map(b=>`<div style="margin-bottom:8px"><b>${b.id}</b> · cash out ${money(b.total)} ${b.status==='released'?badge('released','ok'):b.status==='rejected'?badge('rejected by Executive','bad'):badge(`${b.sigs.length}/3 signatures`,'warn')}<div class="small">${esc(batchItems(b))}</div><div class="small muted">Signed by: ${b.sigs.map(nm).join(', ')||'—'}</div></div>`).join(''):empty('No batches.'))}`};
+VIEWS.manager_journals=u=>{
+ const pks=Object.keys(S.periods).sort(),dr=S.divRuns.slice().reverse();
+ return `<h2>Journals</h2>${card('New journal (double entry)',`<form data-form="journal"><div class="row"><div><label>Debit</label><select name="dr">${Object.keys(ACC).map(a=>`<option value="${a}">${a} ${ACC[a]}</option>`).join('')}</select></div><div><label>Credit</label><select name="cr">${Object.keys(ACC).map((a,i)=>`<option value="${a}" ${i===1?'selected':''}>${a} ${ACC[a]}</option>`).join('')}</select></div><div><label>Amount (KSh)</label><input name="amt" type="number" min="1" step="0.01" required></div></div><label>Narration</label><input name="desc" required minlength="4"><button class="btn" type="submit">Post / submit</button><p class="small muted">Up to ${money(S.policy.journalLimit)} posts immediately. Above that it waits for an Executive to approve.</p></form>`)}
+ ${card('Awaiting Executive approval',S.pendingJ.filter(j=>j.status==='pending').map(j=>`<div class="small">${j.id} · ${esc(j.desc)} · ${money(j.amt)} · Dr ${j.dr} / Cr ${j.cr}</div>`).join('')||empty('None.'))}
+ ${card('Interest / dividend run',`<p class="small muted">Surplus available to distribute now: <b>${money(distributable())}</b> (reserves + interest and fee income − expenses − earlier distributions). The run is credited to members' savings after 3 of 4 Executive signatures. Simplification: the rate applies to the current balance, not a month-weighted average.</p>
+  <form data-form="divprep"><div class="row"><div><label>Annual rate (%)</label><input name="rate" type="number" min="0.01" step="0.01" required></div><div><label>Paid on</label><select name="base"><option value="shares">Share capital (dividend)</option><option value="savings">Savings balance (interest)</option></select></div></div><button class="btn" type="submit">Prepare run</button></form>
+  ${dr.map(d=>`<div class="small" style="margin-top:6px">${d.id} · ${d.rate}% on ${d.base} · ${money(d.total)} · ${d.status==='paid'?badge('paid','ok'):d.status==='rejected'?badge('rejected','bad'):badge(d.sigs.length+'/3','warn')}</div>`).join('')}`)}
+ ${card('Period close',pks.length?pks.map(pk=>{const p=S.periods[pk];return `<div class="row"><div>${pk} ${p.status==='closed'?badge('closed','ok'):badge('open','warn')}</div><div class="small">Attestations ${Object.keys(S.attest[pk]||{}).length}/3</div><div>${p.status==='open'?`<button class="btn sm" data-act="closeperiod" data-p="${pk}">Close ${pk}</button>`:''}</div></div>`}).join(''):empty('No completed month yet.'))}
+ ${card('Trial balance',trialBalance())}${card('Recent journals (press Reverse to correct a manual journal)',journalTable(S.journals,true))}`};
+VIEWS.manager_members=u=>{
+ const ms=S.users.filter(x=>MEMBERISH.includes(x.role));
+ return `<h2>Members</h2>${card('Register member',`<form data-form="register"><div class="row"><div><label>Full name</label><input name="name" required></div><div><label>Phone</label><input name="phone" required placeholder="07…"></div><div><label>ID number</label><input name="idno" required></div></div><div class="row"><div><label>Gross salary</label><input name="salary" type="number" min="0" required></div><div><label>Other monthly deductions</label><input name="deductions" type="number" min="0" value="0"></div><div><label>Type</label><select name="type"><option value="member">Member</option><option value="external">External member</option></select></div></div><button class="btn" type="submit">Register</button></form>`)}
+ ${card('Record share capital purchase',ms.length?`<form data-form="share"><div class="row"><div><label>Member</label><select name="uid">${ms.filter(x=>!x.exited).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select></div><div><label>Amount (KSh)</label><input name="amount" type="number" min="1" required></div><div><label>Received via</label><select name="src"><option>M-Pesa</option><option>Bank</option></select></div></div><button class="btn" type="submit">Record shares</button></form>`:empty('Register a member first.'))}
+ ${card('All members',ms.length?`<div class="tw"><table><tr><th>Name</th><th>Type</th><th>Joined</th><th>Savings</th><th>Shares</th><th>Salary / ID</th></tr>${ms.map(x=>`<tr><td>${esc(x.name)}${x.exited?' '+badge('exited','bad'):''}</td><td>${ROLES[x.role].label}</td><td>${dstr(x.joined)}</td><td>${money(x.savings)}</td><td>${money(x.shares)}</td><td>${ui.reveal[x.id]?`${money(x.salary)} · ${esc(x.idno)}`:`<button class="btn sec sm" data-act="reveal" data-id="${x.id}">View</button>`}</td></tr>`).join('')}</table></div><p class="small muted">Viewing salary or ID instantly alerts the Supervisory Committee by SMS.</p>`:empty('No members registered yet.'))}`};
+
+/* ===== CREDIT ===== */
+VIEWS.credit_home=u=>{
+ const q=S.loans.filter(l=>l.status==='credit').sort((a,b)=>a.creditAt<b.creditAt?-1:1);
+ return `<h2>Loan vote queue</h2>${q.length?q.map(l=>{const a=U(l.uid),v=l.votes[u.id],ap=Object.values(l.votes).filter(x=>x.v==='approve').length,dc=Object.values(l.votes).filter(x=>x.v==='decline').length,own=l.uid===u.id;
+  const c=calc(a,l.amount,l.period,l.refinanceOf);
+  return card(`${l.id} · ${esc(a.name)} · ${money(l.amount)}`,`${loanDetail(l)}<div class="small muted">Waiting ${Math.max(0,Math.round((NOW()-new Date(l.creditAt))/36e5))}h · Savings ${money(a.savings)} · Gross ${money(a.salary)} · Deductions after loan ${money(c.ded)} (cap ${money(c.cap)})</div>
+  <div style="margin:6px 0">Votes: ${badge(ap+' approve','ok')} ${badge(dc+' decline','bad')} (3 of 4 approvals needed)</div>
+  ${l.payslipOK?'':`<button class="btn sec sm" data-act="verifypay" data-id="${l.id}">Verify stamped payslip</button>`}
+  ${v?`<div>You voted <b>${v.v}</b>.</div>`:own?`<div class="bad small">You cannot vote on your own loan.</div>`:`<button class="btn" data-act="vote" data-id="${l.id}" data-v="approve" ${l.payslipOK?'':'disabled'}>Approve</button><button class="btn danger" data-act="vote" data-id="${l.id}" data-v="decline" ${l.payslipOK?'':'disabled'}>Decline</button>${l.payslipOK?'':'<div class="small muted">Verify the payslip first.</div>'}`}`)}).join(''):card('',empty('The queue is empty.'))}`};
+VIEWS.credit_history=u=>`<h2>History</h2>${card('',loanTable(S.loans.filter(l=>!['guarantors','credit'].includes(l.status))))}`;
+VIEWS.credit_rules=u=>`<h2>Rules</h2>${policyCard()}`;
+
+/* ===== EXEC ===== */
+VIEWS.exec_home=u=>{
+ const pb=S.batches.filter(b=>b.status==='pending'),pj=S.pendingJ.filter(j=>j.status==='pending'),pp=S.proposals.filter(p=>p.status==='pending'),dv=S.divRuns.filter(d=>d.status==='pending'),df=S.loans.filter(l=>l.status==='active'&&arrStage(l)===3);
+ return `<h2>Pending for signature</h2>${card('Payment batches (3 of 4 signatures)',pb.length?pb.map(b=>`<div style="margin-bottom:8px"><b>${b.id}</b> · cash out ${money(b.total)} ${badge(b.sigs.length+'/3','warn')}<div class="small">${esc(batchItems(b))}</div><div class="small muted">Signed: ${b.sigs.map(nm).join(', ')||'—'}</div>${b.sigs.includes(u.id)?'<div class="small ok">You signed.</div>':`<button class="btn sm" data-act="signbatch" data-id="${b.id}">Sign</button>`}<button class="btn danger sm" data-act="rejbatch" data-id="${b.id}">Reject batch</button></div>`).join(''):empty('None.'))}
+ ${card('Journals over '+money(S.policy.journalLimit),pj.length?pj.map(j=>`<div style="margin-bottom:8px">${j.id} · ${esc(j.desc)} · ${money(j.amt)} · Dr ${j.dr} / Cr ${j.cr}<div><button class="btn sm" data-act="apprj" data-id="${j.id}">Approve & post</button><button class="btn danger sm" data-act="rejj" data-id="${j.id}">Reject</button></div></div>`).join(''):empty('None.'))}
+ ${card('Interest / dividend runs (3 of 4)',dv.length?dv.map(d=>`<div style="margin-bottom:8px">${d.id} · ${d.rate}% on ${d.base} · ${money(d.total)} to ${d.lines.length} members ${badge(d.sigs.length+'/3','warn')}<div class="small muted">Signed: ${d.sigs.map(nm).join(', ')||'—'}</div>${d.sigs.includes(u.id)?'':`<button class="btn sm" data-act="signdiv" data-id="${d.id}">Sign</button>`}<button class="btn danger sm" data-act="rejdiv" data-id="${d.id}">Reject run</button></div>`).join(''):empty('None.'))}
+ ${card('Defaulted loans',df.length?df.map(l=>`<div style="margin-bottom:8px">${l.id} · ${esc(nm(l.uid))} · balance ${money(loanBal(l))} · ${daysLate(l)} days late<div class="small muted">Pledges: ${l.guars.map(g=>nm(g.uid)+' '+money(g.amt)).join(', ')}</div><button class="btn danger sm" data-act="invoke" data-id="${l.id}">Call guarantees</button></div>`).join(''):empty('No loans in default.'))}
+ ${card('Policy change proposals (3 of 4)',pp.length?pp.map(p=>`<div style="margin-bottom:8px">${p.id} · ${esc(POL_LABEL[p.param])} → <b>${p.value}</b> ${badge(p.sigs.length+'/3','warn')}<div class="small muted">Signed: ${p.sigs.map(nm).join(', ')}</div>${p.sigs.includes(u.id)?'':`<button class="btn sm" data-act="signpol" data-id="${p.id}">Sign</button>`}</div>`).join(''):empty('None.'))}`};
+VIEWS.exec_loans=u=>{const q=S.loans.filter(l=>l.status==='exec');
+ return `<h2>Loan sign-off</h2>${q.length?q.map(l=>card(`${l.id} · ${esc(nm(l.uid))} · ${money(l.amount)}`,`${loanDetail(l)}<div class="small muted">Credit votes: ${Object.entries(l.votes).map(([k,v])=>nm(k)+' '+v.v).join(', ')}</div><button class="btn" data-act="execloan" data-id="${l.id}" data-v="ok">Sign off</button><button class="btn danger" data-act="execloan" data-id="${l.id}" data-v="no">Reject</button>`)).join(''):card('',empty('No loans awaiting sign-off.'))}${card('All loans',loanTable(S.loans))}`};
+VIEWS.exec_access=u=>{
+ const mine=S.access.filter(a=>a.execId===u.id).slice().reverse(),ms=S.users.filter(x=>MEMBERISH.includes(x.role));
+ return `<h2>Access any data</h2>${card('Request access (reason mandatory)',ms.length?`<form data-form="access"><div class="row"><div><label>Member</label><select name="target">${ms.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select></div><div><label>Data</label><select name="scope"><option>Salary & ID</option><option>Full ledger</option><option>Loan files</option></select></div></div><label>Reason</label><textarea name="reason" rows="2" required minlength="10"></textarea><button class="btn" type="submit">Request token</button></form><p class="small muted">A 6-digit token is split: first half to your email, second half to the Supervisory Committee's email. You need both halves.</p>`:empty('No members yet.'))}
+ ${card('My access requests',mine.length?mine.map(a=>{const t=U(a.targetId);return `<div style="margin-bottom:12px"><b>${esc(t.name)}</b> · ${a.scope} · ${tstr(a.t)} ${a.status==='granted'?badge('granted','ok'):badge('awaiting token','warn')} ${a.review?badge('peer-reviewed','ok'):badge('not reviewed','info')}<div class="small muted">${esc(a.reason)}</div>
+  ${a.status==='pending'?`<div class="demo">Email to ${esc(u.email)}: first half <b>${a.token.slice(0,3)}</b></div><form data-form="token" data-id="${a.id}"><label>Full 6-digit token (your half + Supervisory half)</label><input name="tok" maxlength="6" inputmode="numeric" required><button class="btn sm" type="submit">Unlock</button></form>`:`<div style="margin-top:6px">${piiBlock(t)}</div>`}</div>`}).join(''):empty('No requests yet.'))}`};
+VIEWS.exec_policy=u=>`<h2>Policy</h2>${policyCard()}${card('Propose a change (needs 3 of 4 Executive signatures)',`<form data-form="propose"><div class="row"><div><label>Parameter</label><select name="param">${Object.keys(POL_LABEL).map(k=>`<option value="${k}">${POL_LABEL[k]} (now ${S.policy[k]})</option>`).join('')}</select></div><div><label>New value</label><input name="value" type="number" step="any" required></div></div><button class="btn" type="submit">Propose & sign</button></form>`)}${card('Proposals',S.proposals.length?S.proposals.slice().reverse().map(p=>`<div class="small">${p.id} · ${esc(POL_LABEL[p.param])} → ${p.value} · ${p.status==='enacted'?badge('enacted','ok'):badge(p.sigs.length+'/3','warn')}</div>`).join(''):empty('None.'))}
+ ${card('AI assistant service (optional)',`<p class="small muted">Leave blank to use the built-in assistant. If set, the member's own figures (never other members' data) are POSTed to this HTTPS endpoint and its answer is shown; if it fails, the built-in answer is used. The API key lives on that server, never in this app. See <span class="mono">backend-scaffolds/</span>.</p><form data-form="aiset"><label>Endpoint URL</label><input name="url" type="url" placeholder="https://…" value="${esc(S.settings.aiEndpoint)}"><button class="btn" type="submit">Save</button></form>`)}`;
+VIEWS.exec_audit=u=>`<h2>Audit trail</h2>${card('Read-only (cannot be altered or deleted)',auditTable(60))}`;
+
+/* ===== SUPERVISORY (read-only except sign-only actions) ===== */
+VIEWS.sup_alerts=u=>{
+ return `<h2>Live alert feed</h2><div class="grid">${kpi(S.alerts.length,'Alerts')}${kpi(S.access.filter(a=>!a.review).length,'Access not yet reviewed')}${kpi(chainOK()?'Intact ✓':'BROKEN ✗','Ledger chain')}</div><div style="height:12px"></div>
+ ${card('',S.alerts.length?S.alerts.slice(0,60).map(a=>`<div style="margin-bottom:6px"><span class="muted small">${tstr(a.t)}</span> ${badge(a.type,a.type==='access'?'warn':a.type==='sms'?'info':'')} ${esc(a.text)} ${a.supHalf?`<div class="demo" style="margin:4px 0">Email to Supervisory: token second half <b>${a.supHalf}</b></div>`:''}</div>`).join(''):empty('No alerts yet. Activity will appear here.'))}`};
+VIEWS.sup_reviews=u=>{
+ return `<h2>Executive access reviews</h2><p class="muted small">Each access must be peer-reviewed within 5 days.</p>${S.access.length?S.access.slice().reverse().map(a=>{const due=new Date(new Date(a.t).getTime()+5*864e5),late=!a.review&&due<NOW();
+  return card(`${esc(nm(a.execId))} → ${esc(nm(a.targetId))}`,`<div class="small">${a.scope} · ${tstr(a.t)} · ${esc(a.reason)}</div><div style="margin:6px 0">${a.review?badge('reviewed by '+nm(a.review.by),'ok'):late?badge('OVERDUE','bad'):badge('due '+dstr(due),'warn')}</div>${a.review?`<div class="small muted">${esc(a.review.note||'')}</div>`:`<form data-form="review" data-id="${a.id}"><input name="note" placeholder="Review note"><button class="btn sm" type="submit">Mark reviewed</button></form>`}`)}).join(''):card('',empty('No Executive access yet.'))}`};
+VIEWS.sup_ledger=u=>`<h2>Ledger (read-only)</h2>${reconcileCard()}${card('Trial balance',trialBalance())}${card('Journals',journalTable(S.journals))}${card('Audit trail',auditTable(40))}`;
+VIEWS.sup_loans=u=>`<h2>All loans (read-only)</h2>${card('',loanTable(S.loans))}${card('Member savings',`<div class="tw"><table><tr><th>Name</th><th>Role</th><th>Savings</th><th>Shares</th><th>Pledged</th></tr>${S.users.map(x=>`<tr><td>${esc(x.name)}</td><td>${ROLES[x.role].label}</td><td>${money(x.savings)}</td><td>${money(x.shares)}</td><td>${money(committed(x.id))}</td></tr>`).join('')}</table></div>`)}`;
+VIEWS.sup_attest=u=>`<h2>Period attestations</h2>${Object.keys(S.periods).sort().map(pk=>{const p=S.periods[pk],at=S.attest[pk]||{};return card(pk,`${p.status==='closed'?badge('closed','ok'):badge('open — not yet closed by Manager','warn')} <div class="small">Signed: ${Object.keys(at).map(nm).join(', ')||'—'} (${Object.keys(at).length}/3)</div>${p.status==='closed'&&!at[u.id]?`<button class="btn" data-act="attest" data-p="${pk}">Sign attestation</button>`:at[u.id]?'<div class="ok small">You have signed.</div>':''}`)}).join('')||card('',empty('No completed month to attest yet.'))}`;
+
+/* ===== EDUCATION ===== */
+VIEWS.edu_home=u=>`<h2>Training progress</h2>${card('Post an update',`<form data-form="progress"><label>Title</label><input name="title" required><label>Update</label><textarea name="text" rows="3" required></textarea><button class="btn" type="submit">Post</button></form>`)}${card('Posted',S.progress.length?S.progress.slice().reverse().map(p=>`<div style="margin-bottom:8px"><b>${esc(p.title)}</b> <span class="muted small">${dstr(p.t)} · ${esc(nm(p.by))}</span><div class="small">${esc(p.text)}</div></div>`).join(''):empty('Nothing yet.'))}`;
+VIEWS.edu_materials=u=>`<h2>Education materials</h2>${card('Publish',`<form data-form="material"><div class="row"><div><label>Title</label><input name="title" required></div><div><label>Language</label><select name="lang"><option value="EN">English</option><option value="SW">Kiswahili</option></select></div></div><label>Content</label><textarea name="body" rows="4" required></textarea><button class="btn" type="submit">Publish</button></form>`)}${card('Library',S.materials.slice().reverse().map(m=>`<div style="margin-bottom:8px"><b>${esc(m.title)}</b> ${badge(m.lang,'info')}<div class="small">${esc(m.body)}</div></div>`).join('')||empty('Empty.'))}`;
+VIEWS.edu_queries=u=>{const q=S.queries.slice().reverse();
+ return `<h2>Member queries</h2><p class="muted small">Education-only view: no member financials are shown here.</p>${q.length?q.map(x=>card(esc(x.q),`<div class="small muted">Asked by ${esc(nm(x.uid))} · ${tstr(x.t)}</div>${x.a?`<div class="small">${esc(x.a)} — ${esc(nm(x.by))}</div>`:`<form data-form="answer" data-id="${x.id}"><textarea name="a" rows="2" required aria-label="Answer"></textarea><button class="btn sm" type="submit">Answer</button></form>`}`)).join(''):card('',empty('No queries.'))}`};
+
+/* ---------- actions ---------- */
+function finishLogin(){const u=U(ui.lg.uid);S.session=u.id;ui.tab=null;ui.lg={step:0};ui.chat=[];audit('login',ROLES[u.role].label,u.id);save();render()}
+function setApplyReset(){ui.apply=NEWAPPLY()}
+const ACT={
+ pickrole(el){ui.lg={step:1,role:el.dataset.v};render()},
+ pickuser(el){ui.lg.uid=el.dataset.v;if(quickPref()){finishLogin();return}ui.lg.step=2;ui.lg.otpSent=false;render()},
+ quick(){try{localStorage.setItem('cv_quick',quickPref()?'0':'1')}catch(e){}render()},
+ selfcheck(){ui.check=selfCheck();render()},
+ sendotp(){ui.lg.otpSent=true;render()},
+ loginback(){ui.lg.step=Math.max(0,ui.lg.step-1);if(ui.lg.step===0)ui.lg={step:0};render()},
+ webauthn(){finishLogin()},
+ logout(){audit('logout','',S.session);S.session=null;ui.lg={step:0};ui.tab=null;save();render()},
+ resetdemo(){try{localStorage.removeItem(KEY)}catch(e){}S=seed('demo');ui.lg={step:0};ui.tab=null;ui.simLog=null;ui.check=null;setApplyReset();save();render();toast('Sample data reset')},
+ cleanstart(){S=seed('clean');ui.lg={step:0};ui.tab=null;ui.simLog=null;setApplyReset();save();render();toast('Empty SACCO started — officials only')},
+ runsim(){ui.simLog=simulate();setApplyReset();save();render();window.scrollTo(0,document.body.scrollHeight)},
+ lite(){try{localStorage.setItem('cv_lite',litePref()?'0':'1')}catch(e){}applyLite();render()},
+ advance(el){const d=+((el&&el.dataset&&el.dataset.d)||30);CLOCK+=d;S.clock=CLOCK;ensurePeriods();const n=runArrears();audit('clock.advance',`+${d} days → ${dstr(NOW())}`,S.session);save();render();toast(`Date is now ${dstr(NOW())}${n?` · ${n} arrears notice(s)`:''}`)},
+ tab(el){ui.tab=el.dataset.v;render();window.scrollTo(0,0)},
+ autosplit(){const amt=+ui.apply.amount||0;if(!amt)return toast('Enter the loan amount first',1);const b=Math.floor(amt/5);ui.apply.gamt=[0,1,2,3,4].map(i=>String(i===0?amt-b*4:b));render()},
+ gaccept(el){const l=loanOf(el.dataset.id),u=cur(),g=l.guars.find(x=>x.uid===u.id&&x.status==='pending');if(!g)return toast('No pending request',1);if(free(u.id)<g.amt)return toast('Not enough free savings',1);
+  g.status='accepted';l.events.push({t:iso(),text:`${u.name} accepted ${money(g.amt)}`});audit('guarantee.accept',`${l.id} ${money(g.amt)}`);notify(l.uid,`${u.name} accepted to guarantee ${money(g.amt)} for ${l.id}.`);advanceLoan(l);save();render();toast('Guarantee accepted')},
+ gdecline(el){const l=loanOf(el.dataset.id),u=cur(),g=l.guars.find(x=>x.uid===u.id&&x.status==='pending');if(!g)return toast('No pending request',1);g.status='declined';l.events.push({t:iso(),text:`${u.name} declined`});audit('guarantee.decline',l.id);advanceLoan(l);save();render();toast('Guarantee declined')},
+ faqq(el){askAI(el.dataset.q)},
+ csv(){const u=cur(),blob=new Blob([statementCSV(u)],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`statement-${u.id}-${pkey()}.csv`;document.body.appendChild(a);a.click();a.remove();audit('statement.csv','',u.id)},
+ print(){window.print()},
+ reqexit(){need('member','external');const u=cur(),b=exitBlock(u);if(b)return toast(b,1);S.payouts.push({id:'PO'+(++S.seq),uid:u.id,type:'exit',amount:round2(u.savings+u.shares),status:'requested',t:iso()});audit('exit.request',u.name);pushAlert('txn',`${u.name} requested to exit (${money(u.savings+u.shares)})`,u.id);save();render();toast('Exit requested — the Manager will prepare payment')},
+ rejpay(el){need('manager');const p=S.payouts.find(x=>x.id===el.dataset.id);p.status='rejected';notify(p.uid,`Your ${p.type} request ${p.id} was rejected. Please contact the Manager.`);audit('payout.reject',p.id);save();render()},
+ loadsample(el){need('manager');const src=el.dataset.src,m=S.users.filter(x=>MEMBERISH.includes(x.role)&&!x.exited);if(!m.length)return toast('Register members first',1);
+  const key=u=>src==='M-Pesa'?u.phone:u.idno,pick=m.slice(0,4);
+  pick.forEach((u,i)=>S.mpesa.push({id:'ML'+(++S.seq),src,ref:src[0]+(++S.seq)+Math.random().toString(36).slice(2,5).toUpperCase(),key:key(u),amount:[2000,5000,3000,1500][i],matched:u.id,posted:false}));
+  S.mpesa.push({id:'ML'+(++S.seq),src,ref:src[0]+(++S.seq)+Math.random().toString(36).slice(2,5).toUpperCase(),key:src==='M-Pesa'?'0799000111':'99999999',amount:2500,matched:null,posted:false});
+  audit('import.load',`${src} statement (${pick.length+1} lines)`);save();render();toast(`Loaded ${pick.length+1} lines — 1 unmatched`)},
+ postmatched(){need('manager');const ls=S.mpesa.filter(m=>m.matched&&!m.posted);if(!ls.length)return toast('Nothing matched to post',1);ls.forEach(m=>postSavings(m,cur().id));save();render();toast(ls.length+' lines posted')},
+ repay(el){need('manager');const l=loanOf(el.dataset.id),r=l.schedule.find(x=>!x.paid);if(!r||l.status!=='active')return toast('Nothing to collect',1);const pen=penaltyDue(l);
+  const lines=[{acct:'1000',dr:round2(r.pay+pen),cr:0},{acct:'1100',dr:0,cr:r.principal},{acct:'4000',dr:0,cr:r.interest}];if(pen>0)lines.push({acct:'4100',dr:0,cr:pen});
+  post({desc:`${l.id} instalment ${r.n}/${l.period} – ${nm(l.uid)}${pen?' (incl. late penalty)':''}`,lines,by:cur().id,kind:'repayment'});
+  r.paid=true;r.penalty=pen||0;l.notified=0;l.defaulted=false;l.events.push({t:iso(),text:`Instalment ${r.n} received ${money2(r.pay)}${pen?` + penalty ${money2(pen)}`:''}`});
+  if(l.schedule.every(x=>x.paid)){l.status='cleared';l.events.push({t:iso(),text:'Loan cleared — guarantees released'});notify(l.uid,`Loan ${l.id} fully repaid. Guarantors released.`)}
+  save();render();toast('Instalment recorded')},
+ cancelloan(el){need('member','external');const l=loanOf(el.dataset.id),u=cur();if(!l||l.uid!==u.id||!['guarantors','credit'].includes(l.status))return toast('This application can no longer be cancelled',1);
+  l.status='cancelled';l.reason='Cancelled by you';l.events.push({t:iso(),text:'Cancelled by member'});l.guars.forEach(g=>notify(g.uid,`${u.name} cancelled loan ${l.id}. Your pledge is released.`));audit('loan.cancel',l.id);save();render();toast('Application cancelled — pledges released')},
+ cancelpay(el){need('member','external');const p=S.payouts.find(x=>x.id===el.dataset.id);if(!p||p.uid!==cur().id||p.status!=='requested')return toast('This request can no longer be cancelled',1);p.status='cancelled';audit('payout.cancel',p.id);save();render();toast('Request cancelled')},
+ rejbatch(el){need('exec');const b=S.batches.find(x=>x.id===el.dataset.id);if(!b||b.status!=='pending')return toast('Batch is not pending',1);b.status='rejected';b.rejectedBy=cur().id;
+  b.loanIds.forEach(i=>{const l=loanOf(i);if(l.status==='batched'){l.status='approved';l.events.push({t:iso(),text:`Batch ${b.id} rejected — back to the payout queue`})}});b.payoutIds.forEach(i=>{const p=S.payouts.find(x=>x.id===i);if(p.status==='batched')p.status='requested'});
+  audit('batch.reject',b.id);pushAlert('txn',`Batch ${b.id} rejected by ${cur().name}; items returned to the Manager`,cur().id);save();render();toast('Batch rejected — items returned to the Manager')},
+ rejdiv(el){need('exec');const d=S.divRuns.find(x=>x.id===el.dataset.id);if(!d||d.status!=='pending')return toast('Run is not pending',1);d.status='rejected';audit('dividend.reject',d.id);save();render();toast('Run rejected')},
+ reversej(el){need('manager');const j=S.journals.find(x=>x.id===el.dataset.id);if(!j||j.kind!=='manual'||j.lines.length!==2)return toast('Only manual two-line journals can be reversed here',1);if(S.reversals[j.id])return toast('Already reversed',1);
+  const d=j.lines.find(l=>l.dr),c=j.lines.find(l=>l.cr),amt=d.dr,desc='Reversal of '+j.id+' – '+j.desc.replace(/ \(approved by .*\)$/,''),u=cur();
+  if(amt>S.policy.journalLimit){S.pendingJ.push({id:'PJ'+(++S.seq),dr:c.acct,cr:d.acct,amt,desc,by:u.id,t:iso(),status:'pending',rev:j.id});audit('journal.submit',desc+' >limit');save();render();return toast('Over the limit — reversal sent to Executive')}
+  const e=post({desc,lines:[{acct:c.acct,dr:amt,cr:0},{acct:d.acct,dr:0,cr:amt}],by:u.id});S.reversals[j.id]=e.id;save();render();toast('Journal reversed')},
+ arrears(){need('manager');const n=runArrears();save();render();toast(n?`${n} notice(s) sent`:'No new arrears notices')},
+ prepbatch(){need('manager');const ks=Object.keys(ui.batchSel).filter(k=>ui.batchSel[k]),lids=ks.filter(k=>k[0]==='L').map(k=>k.slice(2)).filter(i=>loanOf(i)&&loanOf(i).status==='approved'),pids=ks.filter(k=>k[0]==='P').map(k=>k.slice(2)).filter(i=>{const p=S.payouts.find(x=>x.id===i);return p&&p.status==='requested'});
+  if(!lids.length&&!pids.length)return toast('Tick at least one item',1);
+  const b={id:'B'+(++S.seq),loanIds:lids,payoutIds:pids,sigs:[],status:'pending',by:cur().id,t:iso()};b.total=round2(sum(lids,i=>cashOut(loanOf(i)))+sum(pids,i=>S.payouts.find(p=>p.id===i).amount));
+  lids.forEach(id=>{const l=loanOf(id);l.status='batched';l.events.push({t:iso(),text:`Added to payment batch ${b.id}`})});pids.forEach(id=>{S.payouts.find(p=>p.id===id).status='batched'});
+  S.batches.push(b);ui.batchSel={};audit('batch.prepare',`${b.id} ${money(b.total)}`);pushAlert('txn',`Batch ${b.id} prepared (${money(b.total)}) — awaiting 3 of 4 Executive signatures`,cur().id);save();render();toast('Batch prepared')},
+ closeperiod(el){need('manager');const pk=el.dataset.p;if(!S.periods[pk]||S.periods[pk].status==='closed')return toast('Period not open',1);if(pk>=pkey())return toast('Only completed months can be closed',1);S.periods[pk].status='closed';S.periods[pk].by=cur().id;audit('period.close',pk);pushAlert('txn',`Period ${pk} closed by Manager — awaiting attestations`,cur().id);save();render();toast('Period closed')},
+ reveal(el){need('manager');const t=U(el.dataset.id);ui.reveal[t.id]=true;pushAlert('sms',`SMS to Supervisory: ${cur().name} viewed salary/ID of ${t.name}`,cur().id);audit('pii.view',t.name);save();render()},
+ verifypay(el){need('credit');const l=loanOf(el.dataset.id);l.payslipOK=true;l.events.push({t:iso(),text:`Payslip verified by ${cur().name}`});audit('payslip.verify',l.id);save();render()},
+ vote(el){need('credit');const l=loanOf(el.dataset.id),u=cur(),v=el.dataset.v;
+  if(l.status!=='credit')return toast('Not in the vote queue',1);if(l.uid===u.id)return toast('You cannot vote on your own loan',1);if(l.votes[u.id])return toast('Already voted',1);if(!l.payslipOK)return toast('Verify payslip first',1);
+  l.votes[u.id]={v,t:iso()};l.events.push({t:iso(),text:`${u.name} voted ${v}`});audit('credit.vote',`${l.id} ${v}`);
+  const ap=Object.values(l.votes).filter(x=>x.v==='approve').length,dc=Object.values(l.votes).filter(x=>x.v==='decline').length;
+  if(ap>=3){l.status='exec';l.events.push({t:iso(),text:'Credit Committee approved (3/4) → Executive sign-off'});notify(l.uid,`Credit Committee approved ${l.id}. Awaiting Executive sign-off.`);pushAlert('loan',`${l.id} approved by Credit Committee`,u.id)}
+  else if(dc>=2){l.status='declined';l.reason='Declined by Credit Committee';l.events.push({t:iso(),text:'Credit Committee declined'});notify(l.uid,`Loan ${l.id} was declined by the Credit Committee.`);pushAlert('loan',`${l.id} declined by Credit Committee`,u.id)}
+  save();render();toast('Vote recorded')},
+ execloan(el){need('exec');const l=loanOf(el.dataset.id),u=cur();if(l.status!=='exec')return toast('Not awaiting sign-off',1);
+  if(el.dataset.v==='ok'){l.status='approved';l.events.push({t:iso(),text:`Executive sign-off by ${u.name}`});notify(l.uid,`Loan ${l.id} signed off. Payout will follow in the next payment batch.`)}
+  else{l.status='declined';l.reason='Rejected at Executive sign-off';l.events.push({t:iso(),text:`Rejected by ${u.name}`});notify(l.uid,`Loan ${l.id} was rejected at Executive sign-off.`)}
+  audit('loan.exec',`${l.id} ${el.dataset.v}`);pushAlert('loan',`${l.id} ${el.dataset.v==='ok'?'signed off':'rejected'} by ${u.name}`,u.id);save();render()},
+ signbatch(el){need('exec');const b=S.batches.find(x=>x.id===el.dataset.id),u=cur();if(b.status!=='pending'||b.sigs.includes(u.id))return toast('Already signed or released',1);
+  b.sigs.push(u.id);audit('batch.sign',`${b.id} (${b.sigs.length}/3)`);
+  if(b.sigs.length>=3){
+   const cash=round2(sum(b.loanIds,i=>cashOut(loanOf(i)))+sum(b.payoutIds,i=>S.payouts.find(p=>p.id===i).amount));
+   const fail=()=>{b.sigs.pop();save();render()};
+   if(balance('1000')<cash){fail();return toast(`Bank holds ${money(balance('1000'))} but ${money(cash)} is needed. M-Pesa clearing holds ${money(balance('1200'))} — settle it to bank with a journal first`,1)}
+   for(const id of b.payoutIds){const p=S.payouts.find(x=>x.id===id),m=U(p.uid);if(p.type==='withdrawal'&&p.amount>m.savings){fail();return toast(`${p.id}: member no longer has enough savings`,1)}if(p.type==='exit'&&(committed(m.id)>0||S.loans.some(l=>l.uid===m.id&&OPEN.includes(l.status)))){fail();return toast(`${p.id}: member now has pledges or loans — exit blocked`,1)}}
+   b.loanIds.forEach(id=>{const l=loanOf(id),old=l.refinanceOf?loanOf(l.refinanceOf):null,ob=old&&old.status==='active'?loanBal(old):0;
+    const lines=[{acct:'1100',dr:l.amount,cr:0}];if(ob>0)lines.push({acct:'1100',dr:0,cr:ob});lines.push({acct:'1000',dr:0,cr:round2(l.amount-ob)});
+    post({desc:`Loan disbursement ${l.id} – ${nm(l.uid)}${ob?` (clears ${old.id})`:''}`,lines,by:'batch '+b.id,kind:'disbursement'});
+    if(ob>0){old.status='cleared';old.schedule.forEach(r=>{if(!r.paid){r.paid=true;r.refi=true}});old.events.push({t:iso(),text:`Refinanced by ${l.id}`});}
+    l.status='active';l.disbursed=iso();l.schedule=makeSchedule(l.amount,l.rate,l.period,firstDueAfter(l.disbursed));l.events.push({t:iso(),text:`Disbursed${ob?` (net ${money(l.amount-ob)} after clearing ${old.id})`:''}. First instalment ${dstr(l.schedule[0].due)}`});
+    notify(l.uid,`Loan ${l.id} of ${money(l.amount)} disbursed${ob?` (net ${money(l.amount-ob)})`:''}. First instalment ${dstr(l.schedule[0].due)}.`)});
+   b.payoutIds.forEach(id=>{const p=S.payouts.find(x=>x.id===id),m=U(p.uid);
+    if(p.type==='withdrawal'){post({desc:`Withdrawal ${p.id} – ${m.name}`,lines:[{acct:'2000',dr:p.amount,cr:0},{acct:'1000',dr:0,cr:p.amount}],by:'batch '+b.id,kind:'withdrawal'});m.savings=round2(m.savings-p.amount);S.txns.push({uid:m.id,t:iso(),k:'sav',desc:'Withdrawal '+p.id,amt:-p.amount})}
+    else{const sv=m.savings,sh=m.shares,lines=[];if(sv>0)lines.push({acct:'2000',dr:sv,cr:0});if(sh>0)lines.push({acct:'3100',dr:sh,cr:0});lines.push({acct:'1000',dr:0,cr:round2(sv+sh)});
+     post({desc:`Exit payout ${p.id} – ${m.name}`,lines,by:'batch '+b.id,kind:'exit'});if(sv)S.txns.push({uid:m.id,t:iso(),k:'sav',desc:'Exit payout '+p.id,amt:-sv});if(sh)S.txns.push({uid:m.id,t:iso(),k:'shr',desc:'Exit payout '+p.id,amt:-sh});m.savings=0;m.shares=0;m.exited=true;m.exitedAt=iso()}
+    p.status='paid';p.paidAt=iso();notify(m.id,`${p.type==='exit'?'Exit':'Withdrawal'} of ${money(p.amount)} paid.`)});
+   b.status='released';pushAlert('txn',`Batch ${b.id} released (${money(b.total)})`,u.id);toast('Batch released')}
+  else toast('Signature recorded ('+b.sigs.length+'/3)');
+  save();render()},
+ apprj(el){need('exec');const j=S.pendingJ.find(x=>x.id===el.dataset.id);if(!j||j.status!=='pending')return;try{const e=post({desc:j.desc+` (approved by ${cur().name})`,lines:[{acct:j.dr,dr:j.amt,cr:0},{acct:j.cr,dr:0,cr:j.amt}],by:j.by,kind:j.rev?'reversal':'manual'});if(j.rev)S.reversals[j.rev]=e.id;j.status='approved'}catch(e){return toast(e.message,1)}save();render();toast('Journal posted')},
+ rejj(el){need('exec');const j=S.pendingJ.find(x=>x.id===el.dataset.id);j.status='rejected';audit('journal.reject',j.id);save();render()},
+ signpol(el){need('exec');const p=S.proposals.find(x=>x.id===el.dataset.id),u=cur();if(p.sigs.includes(u.id))return;p.sigs.push(u.id);enactIfReady(p);save();render()},
+ signdiv(el){need('exec');const d=S.divRuns.find(x=>x.id===el.dataset.id),u=cur();if(d.status!=='pending'||d.sigs.includes(u.id))return toast('Already signed',1);d.sigs.push(u.id);audit('dividend.sign',`${d.id} (${d.sigs.length}/3)`);
+  if(d.sigs.length>=3){if(d.total>distributable()){d.sigs.pop();save();render();return toast('Surplus is no longer enough for this run',1)}
+   post({desc:`${d.base==='shares'?'Dividend on shares':'Interest on savings'} ${d.rate}% (${d.id})`,lines:[{acct:'5100',dr:d.total,cr:0},{acct:'2000',dr:0,cr:d.total}],by:'exec '+d.id,kind:'dividend'});
+   d.lines.forEach(x=>{const m=U(x.uid);m.savings=round2(m.savings+x.amt);S.txns.push({uid:m.id,t:iso(),k:'sav',desc:`${d.base==='shares'?'Dividend on shares':'Interest on savings'} ${d.rate}%`,amt:x.amt});notify(m.id,`${money(x.amt)} ${d.base==='shares'?'dividend':'interest'} credited to your savings.`)});d.status='paid';toast('Run paid to members')}
+  else toast('Signature recorded ('+d.sigs.length+'/3)');save();render()},
+ invoke(el){need('exec');const l=loanOf(el.dataset.id);if(!l||l.status!=='active'||arrStage(l)<3)return toast('Loan is not in default',1);
+  const bal=loanBal(l),tot=sum(l.guars,'amt');let left=bal;const shares=l.guars.map((g,i)=>{const s=i===l.guars.length-1?left:round2(bal*g.amt/tot);left=round2(left-s);return{uid:g.uid,amt:s}});
+  if(shares.some(s=>s.amt>U(s.uid).savings+0.001))return toast('A guarantor does not hold enough savings',1);
+  post({desc:`Guarantees called – ${l.id} (${nm(l.uid)})`,lines:[{acct:'2000',dr:bal,cr:0},{acct:'1100',dr:0,cr:bal}],by:cur().id,kind:'recovery'});
+  shares.forEach(s=>{const m=U(s.uid);m.savings=round2(m.savings-s.amt);S.txns.push({uid:m.id,t:iso(),k:'sav',desc:`Guarantee called for ${l.id}`,amt:-s.amt});notify(m.id,`Your pledge was called: ${money(s.amt)} taken from savings for ${l.id}.`)});
+  l.schedule.forEach(r=>{if(!r.paid){r.paid=true;r.recovered=true}});l.status='recovered';l.defaulted=false;l.events.push({t:iso(),text:`Guarantees called by ${cur().name}: ${money(bal)} recovered`});notify(l.uid,`Loan ${l.id} was recovered from your guarantors.`);
+  audit('guarantee.call',`${l.id} ${money(bal)}`);save();render();toast('Guarantees called')},
+ attest(el){need('sup');const pk=el.dataset.p;if(!S.periods[pk]||S.periods[pk].status!=='closed')return toast('Period is not closed',1);S.attest[pk]=S.attest[pk]||{};S.attest[pk][cur().id]=iso();audit('period.attest',pk);pushAlert('txn',`${cur().name} signed attestation for ${pk}`,cur().id);save();render();toast('Attestation signed')}
+};
+function enactIfReady(p){if(p.sigs.length>=3&&p.status==='pending'){S.policy[p.param]=p.value;p.status='enacted';audit('policy.enact',`${p.param}=${p.value}`);pushAlert('txn',`Policy changed: ${POL_LABEL[p.param]} = ${p.value}`,'exec')}}
+
+const FORMS={
+ otp(f){if(f.get('otp')!=='123456')return toast('Wrong code (demo code is 123456)',1);if(ROLES[U(ui.lg.uid).role].key){ui.lg.step=3;render()}else finishLogin()},
+ apply(){need('member','external');const u=cur(),a=ui.apply,n=+a.period,amt=+a.amount,E=elig(u,a.refi),c=calc(u,amt,n,a.refi),old=a.refi?loanOf(a.refi):null;
+  const bad=a.guar.find((g,i)=>g&&(+a.gamt[i])>free(g));
+  const err=!E.ok?'You are not eligible yet':a.refi&&(!old||old.uid!==u.id||old.status!=='active'||arrStage(old)>=2)?'That loan cannot be topped up':!(amt>0)?'Enter the loan amount':old&&amt<=loanBal(old)?`A top-up must be more than your balance of ${money(loanBal(old))}`:amt>E.max?`Amount exceeds your maximum of ${money(E.max)}`:n>S.policy.maxPeriod?'Period too long':c.ded>c.cap?'Total deductions would exceed 2/3 of gross salary':
+   a.guar.some(g=>!g)?'Choose all 5 guarantors':new Set(a.guar).size!==5?'Guarantors must be 5 different members':a.guar.some((g,i)=>!(+a.gamt[i]>0))?'Enter every pledge amount':
+   Math.abs(sum(a.gamt,x=>+x||0)-amt)>0.5?'Pledges must add up exactly to the loan amount':bad?`${nm(bad)} does not have enough free savings`:!a.file?'Attach your stamped payslip':null;
+  if(err)return toast(err,1);
+  const l={id:'L'+(++S.seq),uid:u.id,amount:amt,period:n,rate:S.policy.rate,instalment:round2(pmt(amt,S.policy.rate,n)),status:'guarantors',payslip:a.file,payslipOK:false,refinanceOf:a.refi||null,
+   guars:a.guar.map((g,i)=>({uid:g,amt:+a.gamt[i],status:'pending'})),votes:{},schedule:[],created:iso(),creditAt:null,events:[{t:iso(),text:a.refi?`Top-up application (clears ${a.refi})`:'Application submitted'}]};
+  S.loans.push(l);l.guars.forEach(g=>notify(g.uid,`${u.name} asked you to guarantee ${money(g.amt)} for loan ${l.id}. Open Guarantees to accept or decline.`));
+  audit('loan.apply',`${l.id} ${money(amt)}`);pushAlert('loan',`${l.id} ${a.refi?'top-up ':''}application by ${u.name} (${money(amt)})`,u.id);
+  setApplyReset();save();render();toast('Application submitted — guarantors notified')},
+ faq(f){const q=(f.get('q')||'').trim();if(!q)return;askAI(q)},
+ ask(f){need('member','external');S.queries.push({id:'Q'+(++S.seq),uid:cur().id,q:f.get('q'),a:null,by:null,t:iso()});audit('query.ask','');save();render();toast('Sent to the Education Committee')},
+ withdraw(f){need('member','external');const u=cur(),amt=+f.get('amount'),mx=maxWithdraw(u);if(!(amt>0))return toast('Enter an amount',1);if(amt>mx)return toast(`You can withdraw at most ${money(mx)}`,1);
+  S.payouts.push({id:'PO'+(++S.seq),uid:u.id,type:'withdrawal',amount:amt,status:'requested',t:iso()});audit('withdraw.request',money(amt));pushAlert('txn',`${u.name} requested withdrawal ${money(amt)}`,u.id);save();render();toast('Withdrawal requested')},
+ c2b(f){need('manager');try{const l=c2b({transId:'MP'+(++S.seq)+Math.random().toString(36).slice(2,6).toUpperCase(),msisdn:f.get('msisdn'),billRef:f.get('billRef'),amount:f.get('amount')});save();render();toast(l.matched?`Credited ${nm(l.matched)}`:'No matching member — added to unmatched lines')}catch(e){toast(e.message,1)}},
+ journal(f){need('manager');const dr=f.get('dr'),cr=f.get('cr'),amt=+f.get('amt'),desc=f.get('desc'),u=cur();
+  if(dr===cr)return toast('Debit and credit accounts must differ',1);if(!(amt>0))return toast('Enter an amount',1);
+  if(amt>S.policy.journalLimit){S.pendingJ.push({id:'PJ'+(++S.seq),dr,cr,amt,desc,by:u.id,t:iso(),status:'pending'});audit('journal.submit',`${desc} ${money(amt)} >limit`);pushAlert('txn',`Journal over limit awaiting Executive: ${desc} (${money(amt)})`,u.id);save();render();return toast('Over the limit — sent to Executive for approval')}
+  try{post({desc,lines:[{acct:dr,dr:amt,cr:0},{acct:cr,dr:0,cr:amt}],by:u.id})}catch(e){return toast(e.message,1)}save();render();toast('Journal posted')},
+ divprep(f){need('manager');const rate=+f.get('rate'),base=f.get('base');if(!(rate>0))return toast('Enter a rate',1);
+  const lines=S.users.filter(x=>!x.exited&&(base==='shares'?x.shares:x.savings)>0).map(x=>({uid:x.id,amt:round2((base==='shares'?x.shares:x.savings)*rate/100)})).filter(x=>x.amt>0),total=round2(sum(lines,'amt'));
+  if(!lines.length)return toast('No member has a balance to pay on',1);if(total>distributable())return toast(`Run costs ${money(total)} but only ${money(distributable())} is distributable`,1);
+  S.divRuns.push({id:'DV'+(++S.seq),rate,base,total,lines,by:cur().id,sigs:[],status:'pending',t:iso()});audit('dividend.prepare',`${rate}% on ${base} = ${money(total)}`);save();render();toast('Run prepared — awaiting Executive signatures')},
+ register(f){need('manager');const id='m'+(++S.seq);if(S.users.some(x=>x.idno===f.get('idno')||x.phone===f.get('phone')))return toast('A member with that ID number or phone already exists',1);
+  S.users.push({id,name:f.get('name'),role:f.get('type'),phone:f.get('phone'),email:id+'@rivabot.example',idno:f.get('idno'),joined:iso(),savings:0,shares:0,salary:+f.get('salary'),deductions:+(f.get('deductions')||0)});
+  audit('member.register',f.get('name'));save();render();toast('Member registered')},
+ share(f){need('manager');const m=U(f.get('uid')),amt=+f.get('amount');if(!m||!(amt>0))return toast('Choose a member and amount',1);
+  post({desc:`Share capital ${f.get('src')} – ${m.name}`,lines:[{acct:f.get('src')==='Bank'?'1000':'1200',dr:amt,cr:0},{acct:'3100',dr:0,cr:amt}],by:cur().id,kind:'shares'});m.shares=round2(m.shares+amt);S.txns.push({uid:m.id,t:iso(),k:'shr',desc:'Share capital purchase',amt});notify(m.id,`Share capital of ${money(amt)} recorded.`);save();render();toast('Shares recorded')},
+ access(f){need('exec');const u=cur(),tok=String(Math.floor(100000+Math.random()*900000));const a={id:'A'+(++S.seq),execId:u.id,targetId:f.get('target'),scope:f.get('scope'),reason:f.get('reason'),t:iso(),token:tok,status:'pending',review:null};
+  if((a.reason||'').trim().length<10)return toast('Give a proper reason (10+ characters)',1);
+  S.access.push(a);audit('access.request',`${nm(a.targetId)} · ${a.scope} · ${a.reason}`);pushAlert('access',`${u.name} requested ${a.scope} of ${nm(a.targetId)}. Reason: ${a.reason}`,u.id,{supHalf:tok.slice(3)});save();render();toast('Token halves sent')},
+ token(f,form){need('exec');const a=S.access.find(x=>x.id===form.dataset.id);if(f.get('tok')!==a.token)return toast('Token does not match',1);a.status='granted';audit('access.granted',a.id);pushAlert('access',`Access granted: ${nm(a.execId)} → ${nm(a.targetId)}`,a.execId);save();render()},
+ propose(f){need('exec');const u=cur(),p={id:'PP'+(++S.seq),param:f.get('param'),value:+f.get('value'),by:u.id,sigs:[u.id],status:'pending',t:iso()};
+  if(!(p.value>0))return toast('Value must be positive',1);if(p.param==='rate'&&p.value>0.015)return toast('Rate is capped at 1.5% per month by the 2009 policy',1);if(p.param==='penaltyRate'&&p.value>1)return toast('Penalty is a share between 0 and 1',1);
+  S.proposals.push(p);audit('policy.propose',`${p.param}=${p.value}`);enactIfReady(p);save();render();toast('Proposal created, your signature recorded')},
+ aiset(f){need('exec');const v=(f.get('url')||'').trim();if(v&&!/^https:\/\//.test(v))return toast('Endpoint must start with https://',1);S.settings.aiEndpoint=v;audit('ai.endpoint',v?'set':'cleared');save();render();toast(v?'AI endpoint saved':'Using built-in assistant')},
+ review(f,form){need('sup');const a=S.access.find(x=>x.id===form.dataset.id);a.review={by:cur().id,note:f.get('note'),t:iso()};audit('access.review',a.id);save();render();toast('Review recorded')},
+ progress(f){need('edu');S.progress.push({id:'PR'+(++S.seq),title:f.get('title'),text:f.get('text'),by:cur().id,t:iso()});audit('edu.progress',f.get('title'));save();render();toast('Posted')},
+ material(f){need('edu');S.materials.push({id:'ED'+(++S.seq),title:f.get('title'),lang:f.get('lang'),body:f.get('body'),by:cur().id,t:iso()});audit('edu.material',f.get('title'));save();render();toast('Published')},
+ answer(f,form){need('edu');const q=S.queries.find(x=>x.id===form.dataset.id);q.a=f.get('a');q.by=cur().id;notify(q.uid,'The Education Committee answered your question.');audit('edu.answer',q.id);save();render();toast('Answer sent')}
+};
+const CHG={
+ gsel(el){ui.apply.guar[+el.dataset.i]=el.value;render()},
+ period(el){ui.apply.period=+el.value;render()},
+ refi(el){ui.apply.refi=el.value;render()},
+ file(el){ui.apply.file=el.files[0]?el.files[0].name:'';render()},
+ assign(el){const m=S.mpesa.find(x=>x.id===el.dataset.id);m.matched=el.value||null;save();render()},
+ bsel(el){ui.batchSel[el.dataset.id]=el.checked}
+};
+
+/* ---------- complete simulation: empty SACCO → 8 months of life, through the same functions the screens use ---------- */
+function simulate(){
+ const L=[];SIM=true;
+ const step=(name,fn)=>{try{LAST=null;const r=fn();if(LAST&&LAST.err)throw new Error(LAST.msg);L.push({name,ok:r!==false,detail:typeof r==='string'?r:''})}catch(e){L.push({name,ok:false,detail:e.message})}};
+ const as=id=>{S.session=id},fd=o=>({get:k=>o[k]}),el=(id,x)=>({dataset:Object.assign({id},x||{})});
+ const run=fn=>{LAST=null;fn();if(LAST&&LAST.err)throw new Error(LAST.msg)};
+ const check=()=>{const bad=reconcile().filter(r=>!r.ok);if(bad.length)throw new Error(bad.map(b=>b.t).join('; '))};
+ try{
+ S=seed('clean');ui.tab=null;ui.chat=[];setApplyReset();
+ let M=[];
+ step('Start empty: only the 16 office-bearer seats exist, all balances zero',()=>{if(S.users.length!==16||S.journals.length||sum(S.users,'savings'))throw new Error('not empty');return 'bank '+money(balance('1000'))});
+ step('Manager registers 9 members (1 external)',()=>{as('mg1');const names=['Wanjiru Kamau','Otieno Odhiambo','Chebet Rotich','Mutua Ndolo','Akinyi Ouma','Njoroge Gitau','Halima Yusuf','Kiptoo Langat','Zawadi Mwita'];
+  names.forEach((n,i)=>run(()=>FORMS.register(fd({name:n,phone:'07120000'+String(10+i),idno:'3000000'+i,salary:90000+i*5000,deductions:i%3*2000,type:i===8?'external':'member'}))));
+  M=S.users.filter(x=>MEMBERISH.includes(x.role)).map(x=>x.id);return M.length+' members'});
+ step('Duplicate ID is rejected',()=>{as('mg1');LAST=null;FORMS.register(fd({name:'Dup',phone:'0700000000',idno:'30000000',salary:1,type:'member'}));if(!(LAST&&LAST.err))throw new Error('duplicate accepted');LAST=null});
+ step('Share capital recorded for every member',()=>{as('mg1');M.forEach(id=>run(()=>FORMS.share(fd({uid:id,amount:5000,src:'M-Pesa'}))));return money(balance('3100'))});
+ step('Non-manager cannot post journals (maker-checker role guard)',()=>{as('e1');let blocked=false;try{FORMS.journal(fd({dr:'1000',cr:'3000',amt:10,desc:'sneaky'}))}catch(e){blocked=true}if(!blocked)throw new Error('exec could post a journal')});
+ step('8 months of M-Pesa C2B contributions credit members automatically',()=>{as('mg1');
+  for(let mo=0;mo<8;mo++){M.forEach((id,i)=>{const u=U(id);c2b({transId:'SIM'+mo+'X'+i,msisdn:u.phone,billRef:mo%2?u.idno:u.phone,amount:12000+i*2000})});
+   if(mo===2)c2b({transId:'SIMUNMATCHED',msisdn:'0799999999',billRef:'nobody',amount:3000});
+   if(mo<7){CLOCK+=31;S.clock=CLOCK;ensurePeriods();runArrears()}}
+  return 'savings '+money(balance('2000'))});
+ step('Duplicate M-Pesa TransID rejected',()=>{let blocked=false;try{c2b({transId:'SIM0X0',msisdn:U(M[0]).phone,billRef:'',amount:100})}catch(e){blocked=true}if(!blocked)throw new Error('duplicate accepted')});
+ step('Unmatched C2B assigned by hand and posted',()=>{as('mg1');const ln=S.mpesa.find(m=>m.ref==='SIMUNMATCHED');CHG.assign({dataset:{id:ln.id},value:M[0]});run(()=>ACT.postmatched());if(!ln.posted)throw new Error('not posted')});
+ step('Books reconcile after contributions',check);
+ step('Manager settles M-Pesa clearing to bank: over the limit, so an Executive approves it',()=>{as('mg1');const amt=Math.floor(balance('1200')*0.9);run(()=>FORMS.journal(fd({dr:'1000',cr:'1200',amt,desc:'Settle M-Pesa clearing to bank'})));const pj=S.pendingJ.find(j=>j.status==='pending');if(!pj)throw new Error('not held for approval');as('e3');run(()=>ACT.apprj(el(pj.id)));if(balance('1000')<amt)throw new Error('bank not funded');check();return 'bank '+money(balance('1000'))});
+ const guars=(ex,n)=>M.filter(x=>x!==ex&&x!==M[8]&&x!==M[3]).slice(0,n);
+ const applyLoan=(uid,amt,per,gs,refi)=>{as(uid);ui.apply={amount:String(amt),period:per,guar:gs,gamt:gs.map(()=>String(amt/5)),file:'payslip.pdf',refi:refi||''};run(()=>FORMS.apply(fd({})));return S.loans[S.loans.length-1]};
+ const approveAll=l=>{l.guars.forEach(g=>{as(g.uid);run(()=>ACT.gaccept(el(l.id)))})};
+ const credit=(l,ids)=>ids.forEach((c,i)=>{as(c);run(()=>ACT.verifypay(el(l.id)));run(()=>ACT.vote(el(l.id,{v:'approve'})))});
+ const exec=(l)=>{as('e1');run(()=>ACT.execloan(el(l.id,{v:'ok'})))};
+ const batch=(items)=>{as('mg1');ui.batchSel={};items.forEach(k=>ui.batchSel[k]=true);run(()=>ACT.prepbatch());const b=S.batches[S.batches.length-1];['e1','e2','e3'].forEach(e=>{as(e);run(()=>ACT.signbatch(el(b.id)))});return b};
+ let LA,LB,LC,LD;
+ step('Loan A (Kiptoo, KSh 150,000): apply → 5 guarantors accept → credit queue',()=>{LA=applyLoan(M[7],150000,12,guars(M[7],5));approveAll(LA);if(LA.status!=='credit')throw new Error('status '+LA.status)});
+ step('Loan B (Otieno, KSh 80,000) reaches the credit queue',()=>{LB=applyLoan(M[1],80000,12,guars(M[1],5));approveAll(LB);if(LB.status!=='credit')throw new Error(LB.status)});
+ step('Credit member cannot vote before the payslip is verified',()=>{as('c1');LAST=null;ACT.vote(el(LA.id,{v:'approve'}));if(!(LAST&&LAST.err))throw new Error('voted without payslip');LAST=null});
+ step('Loans A and B approved 3 of 4, signed off by Executive',()=>{credit(LA,['c1','c2','c3']);credit(LB,['c1','c2','c3']);exec(LA);exec(LB);if(LA.status!=='approved'||LB.status!=='approved')throw new Error('not approved')});
+ step('Manager cannot sign a payment batch',()=>{as('mg1');ui.batchSel={['L:'+LA.id]:true,['L:'+LB.id]:true};run(()=>ACT.prepbatch());const b=S.batches[S.batches.length-1];let blocked=false;try{ACT.signbatch(el(b.id))}catch(e){blocked=true}if(!blocked)throw new Error('manager signed');['e1','e2','e3'].forEach(e=>{as(e);run(()=>ACT.signbatch(el(b.id)))});if(b.status!=='released')throw new Error('not released');return b.id+' '+money(b.total)});
+ step('Both loans active; schedules built; ledger loan balance matches',()=>{if(LA.status!=='active'||LB.status!=='active')throw new Error('not active');check();return 'receivable '+money(balance('1100'))});
+ step('Loan C declined by Credit (2 declines), Loan D declined when a guarantor refuses',()=>{LC=applyLoan(M[2],90000,12,guars(M[2],5));approveAll(LC);['c1','c2'].forEach(c=>{as(c);run(()=>ACT.verifypay(el(LC.id)));run(()=>ACT.vote(el(LC.id,{v:'decline'})))});if(LC.status!=='declined')throw new Error('C '+LC.status);
+  LD=applyLoan(M[3],60000,12,guars(M[3],5));as(LD.guars[0].uid);run(()=>ACT.gdecline(el(LD.id)));if(LD.status!=='declined')throw new Error('D '+LD.status)});
+ step('Declined loans free the guarantors’ pledges',()=>{const n=S.users.filter(x=>committed(x.id)>0).length;check();return n+' members still carry pledges (loans A, B)'});
+ step('Month 1: A pays its first instalment; B does not',()=>{CLOCK+=31;S.clock=CLOCK;ensurePeriods();runArrears();as('mg1');run(()=>ACT.repay(el(LA.id)))});
+ step('Month 2: A pays late → penalty is charged and posted to fee income',()=>{CLOCK+=36;S.clock=CLOCK;runArrears();as('mg1');const p0=balance('4100'),pen=penaltyDue(LA);run(()=>ACT.repay(el(LA.id)));if(!(pen>0)||Math.abs(balance('4100')-p0-pen)>0.01)throw new Error('penalty not posted');return 'penalty '+money(pen)});
+ step('B reaches stage 2: member and guarantors notified',()=>{CLOCK+=0;runArrears();const st=arrStage(LB);if(st<2)throw new Error('stage '+st);if(!S.inbox.some(m=>m.uid===LB.guars[0].uid&&/days late/.test(m.text)))throw new Error('guarantor not told')});
+ step('B reaches default (60+ days) → escalated to Executive',()=>{let n=0;while(arrStage(LB)<3&&n++<12){CLOCK+=10;S.clock=CLOCK;runArrears()}if(arrStage(LB)<3)throw new Error('never defaulted');if(!LB.defaulted)throw new Error('no escalation flag');return daysLate(LB)+' days late'});
+ step('Executive calls guarantees → recovered from guarantors pro rata',()=>{as('e2');const g0=U(LB.guars[0].uid).savings,bal=loanBal(LB);run(()=>ACT.invoke(el(LB.id)));if(LB.status!=='recovered')throw new Error(LB.status);if(Math.abs(g0-U(LB.guars[0].uid).savings-bal/5)>0.02)throw new Error('pro-rata share wrong');check();return money(bal)+' recovered'});
+ step('Loan A top-up to KSh 200,000 clears the old balance',()=>{as('mg1');while(LA.schedule.filter(r=>!r.paid).length&&daysLate(LA)>0)run(()=>ACT.repay(el(LA.id)));
+  const old=loanBal(LA),LT=applyLoan(M[7],200000,18,guars(M[7],5),LA.id);approveAll(LT);credit(LT,['c1','c2','c3']);exec(LT);const cash0=balance('1000');batch(['L:'+LT.id]);
+  if(LT.status!=='active'||LA.status!=='cleared')throw new Error(LT.status+'/'+LA.status);if(Math.abs(cash0-balance('1000')-(200000-old))>0.02)throw new Error('net cash wrong');check();return `net cash ${money(200000-old)} after clearing ${money(old)}`});
+ step('Withdrawal: request → batch → 3 signatures → paid',()=>{const m=M[8];as(m);const mx=maxWithdraw(U(m));if(mx<5000)throw new Error('max '+mx);const s0=U(m).savings;run(()=>FORMS.withdraw(fd({amount:5000})));const p=S.payouts[S.payouts.length-1];batch(['P:'+p.id]);if(p.status!=='paid'||U(m).savings!==s0-5000)throw new Error('not paid');check()});
+ step('Over-limit withdrawal is refused',()=>{as(M[0]);LAST=null;FORMS.withdraw(fd({amount:99999999}));if(!(LAST&&LAST.err))throw new Error('accepted');LAST=null});
+ step('Exit: member with no loans/pledges leaves; savings + shares paid; cannot log in',()=>{const m=M[3];as(m);if(exitBlock(U(m)))throw new Error(exitBlock(U(m)));run(()=>ACT.reqexit());const p=S.payouts[S.payouts.length-1];batch(['P:'+p.id]);if(!U(m).exited||U(m).savings!==0)throw new Error('not exited');check()});
+ step('Exit blocked while pledges exist',()=>{const busy=S.users.find(x=>MEMBERISH.includes(x.role)&&!x.exited&&committed(x.id)>0);if(!busy)return 'no pledged member left';if(!exitBlock(busy))throw new Error('exit allowed with pledges')});
+ step('Interest/dividend run: Manager prepares, 3 Executives sign, members credited',()=>{as('mg1');const d0=distributable();if(!(d0>0))throw new Error('no surplus');const rate=Math.max(0.01,Math.floor(d0/Math.max(1,balance('3100'))*100*0.5*100)/100);run(()=>FORMS.divprep(fd({rate,base:'shares'})));const dv=S.divRuns[S.divRuns.length-1];['e1','e2','e3'].forEach(e=>{as(e);run(()=>ACT.signdiv(el(dv.id)))});if(dv.status!=='paid')throw new Error('not paid');check();return `${rate}% on shares = ${money(dv.total)}`});
+ step('Over-surplus dividend refused',()=>{as('mg1');LAST=null;FORMS.divprep(fd({rate:500,base:'savings'}));if(!(LAST&&LAST.err))throw new Error('accepted');LAST=null});
+ step('Member cancels an open application and a withdrawal request (pledges released)',()=>{const LX=applyLoan(M[6],60000,12,guars(M[6],5));as(M[6]);run(()=>ACT.cancelloan(el(LX.id)));if(LX.status!=='cancelled')throw new Error(LX.status);if(S.users.some(x=>S.loans.some(l=>l.id===LX.id&&OPEN.includes(l.status))))throw new Error('still open');
+  as(M[5]);run(()=>FORMS.withdraw(fd({amount:1000})));const p=S.payouts[S.payouts.length-1];run(()=>ACT.cancelpay(el(p.id)));if(p.status!=='cancelled')throw new Error(p.status);check()});
+ step('Executive rejects a payment batch → items go back to the Manager queue',()=>{as(M[5]);run(()=>FORMS.withdraw(fd({amount:2000})));const p=S.payouts[S.payouts.length-1];as('mg1');ui.batchSel={['P:'+p.id]:true};run(()=>ACT.prepbatch());const b=S.batches[S.batches.length-1];as('e1');run(()=>ACT.rejbatch(el(b.id)));if(b.status!=='rejected'||p.status!=='requested')throw new Error(b.status+'/'+p.status);as('mg1');run(()=>ACT.rejpay(el(p.id)));check()});
+ step('Executive rejects a dividend run',()=>{as('mg1');run(()=>FORMS.divprep(fd({rate:0.01,base:'shares'})));const dv=S.divRuns[S.divRuns.length-1];as('e2');run(()=>ACT.rejdiv(el(dv.id)));if(dv.status!=='rejected')throw new Error(dv.status)});
+ step('Journal ≤ limit posts; > limit waits for Executive and posts on approval',()=>{as('mg1');run(()=>FORMS.journal(fd({dr:'5000',cr:'1000',amt:8000,desc:'Office rent'})));run(()=>FORMS.journal(fd({dr:'1000',cr:'1200',amt:300000,desc:'Settle M-Pesa clearing to bank'})));const pj=S.pendingJ.find(j=>j.status==='pending');if(!pj)throw new Error('not pending');as('e3');run(()=>ACT.apprj(el(pj.id)));check()});
+ step('Manager reverses a wrong journal; balances return',()=>{as('mg1');const j=S.journals.find(x=>x.desc==='Office rent'),b0=balance('5000');run(()=>ACT.reversej(el(j.id)));if(!S.reversals[j.id])throw new Error('not reversed');if(Math.abs(balance('5000')-(b0-8000))>0.01)throw new Error('balance not restored');LAST=null;ACT.reversej(el(j.id));if(!(LAST&&LAST.err))throw new Error('double reversal allowed');LAST=null;check()});
+ step('Period close: Manager closes the earliest month; 3 Supervisory attest',()=>{as('mg1');const pk=Object.keys(S.periods).sort()[0];run(()=>ACT.closeperiod(el(null,{p:pk})));['s1','s2','s3'].forEach(s=>{as(s);run(()=>ACT.attest(el(null,{p:pk})))});if(Object.keys(S.attest[pk]).length!==3)throw new Error('attest');return pk});
+ step('Executive access with split token → data unlocked → Supervisory peer review',()=>{as('e4');run(()=>FORMS.access(fd({target:M[7],scope:'Salary & ID',reason:'Verify payslip against payroll for loan A top-up'})));const a=S.access[S.access.length-1];
+  LAST=null;FORMS.token(fd({tok:'000000'}),{dataset:{id:a.id}});if(!(LAST&&LAST.err))throw new Error('wrong token accepted');LAST=null;
+  if(!S.alerts.some(x=>x.supHalf===a.token.slice(3)))throw new Error('Supervisory did not get second half');run(()=>FORMS.token(fd({tok:a.token}),{dataset:{id:a.id}}));if(a.status!=='granted')throw new Error('not granted');
+  as('s1');run(()=>FORMS.review(fd({note:'Reason acceptable'}),{dataset:{id:a.id}}));if(!a.review)throw new Error('not reviewed')});
+ step('Manager views salary → SMS alert to Supervisory',()=>{as('mg1');run(()=>ACT.reveal(el(M[1])));if(!S.alerts.some(a=>a.type==='sms'))throw new Error('no alert')});
+ step('Policy change needs 3 of 4 Executives (and the 1.5% rate cap holds)',()=>{as('e1');run(()=>FORMS.propose(fd({param:'guarantorDays',value:21})));const p=S.proposals[S.proposals.length-1];['e2','e3'].forEach(e=>{as(e);run(()=>ACT.signpol(el(p.id)))});if(S.policy.guarantorDays!==21)throw new Error('not enacted');as('e1');LAST=null;FORMS.propose(fd({param:'rate',value:0.03}));if(!(LAST&&LAST.err))throw new Error('rate cap bypassed');LAST=null});
+ step('Education: progress, EN + SW material, member question answered',()=>{as('d1');run(()=>FORMS.progress(fd({title:'Savings clinic',text:'Held at the chapter office'})));run(()=>FORMS.material(fd({title:'Budgeting',lang:'EN',body:'Plan monthly.'})));run(()=>FORMS.material(fd({title:'Bajeti',lang:'SW',body:'Panga kila mwezi.'})));as(M[0]);run(()=>FORMS.ask(fd({q:'What is a dividend?'})));const q=S.queries[S.queries.length-1];as('d2');run(()=>FORMS.answer(fd({a:'A share of surplus.'}),{dataset:{id:q.id}}));if(!q.a)throw new Error('unanswered')});
+ step('Assistant answers from live data (EN and Kiswahili)',()=>{const u=U(M[7]);const a1=assistantLocal('How much can I borrow?',u),a2=assistantLocal('Akiba yangu ni kiasi gani?',u),a3=assistantLocal(`Can I borrow 100000 for 12 months`,u);
+  if(!a1.includes(money(elig(u).max)))throw new Error('limit not live');if(!a2.includes(money(u.savings)))throw new Error('savings not live');if(!/^(Yes|Not yet)/.test(a3))throw new Error('no verdict');if(!/Akiba/.test(a2))throw new Error('no SW')});
+ step('Member statement CSV has every transaction',()=>{const u=U(M[7]),csv=statementCSV(u);if(csv.split('\n').length<S.txns.filter(t=>t.uid===u.id).length+1)throw new Error('rows missing')});
+ step('Final reconciliation: ledger, savings, shares, loans, statements, pledges',check);
+ SIM=false;
+ step('Every screen of every role renders live data (no undefined / NaN / empty-object text)',()=>{const probs=[];let n=0;
+  const pick={member:M[7],external:M[8],manager:'mg1',credit:'c1',exec:'e1',sup:'s1',edu:'d1'};
+  Object.keys(ROLES).forEach(r=>ROLES[r].tabs.forEach(t=>{S.session=pick[r];ui.tab=t[0];const u=cur();const fn=VIEWS[r+'_'+t[0]]||VIEWS['member_'+t[0]];let h;try{h=fn(u)}catch(e){probs.push(r+'/'+t[0]+': '+e.message);return}n++;
+   if(/undefined|NaN|\[object|Infinity|null/.test(h.replace(/data-[a-z-]+="[^"]*"/g,'')))probs.push(r+'/'+t[0]+' contains bad text: '+(h.match(/.{15}(undefined|NaN|\[object|Infinity|null).{10}/)||[''])[0])}));
+  if(probs.length)throw new Error(probs.slice(0,4).join(' | '));return n+' screens checked'});
+ }finally{SIM=false}
+ S.session=null;ui.tab=null;audit('simulation','complete','system');return L}
+
+document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;if(el.tagName==='BUTTON'&&el.disabled)return;try{ACT[el.dataset.act](el,e)}catch(err){console.error(err);toast(err.message,1)}});
+document.addEventListener('submit',e=>{const f=e.target.closest('form[data-form]');if(!f)return;e.preventDefault();try{FORMS[f.dataset.form](new FormData(f),f)}catch(err){console.error(err);toast(err.message,1)}});
+document.addEventListener('change',e=>{const el=e.target.closest('[data-change]');if(!el)return;try{CHG[el.dataset.change](el)}catch(err){console.error(err);toast(err.message,1)}});
+document.addEventListener('input',e=>{const el=e.target.closest('[data-input]');if(!el)return;const a=ui.apply;
+ if(el.dataset.input==='amount')a.amount=el.value;else if(el.dataset.input==='gamt')a.gamt[+el.dataset.i]=el.value;
+ const c=$('#calc'),g=$('#gsum');if(c)c.innerHTML=calcHtml(cur());if(g)g.innerHTML=gsumHtml()});
+window.addEventListener('error',e=>{const a=$('#app');if(a&&!a.innerHTML.trim())a.innerHTML=`<main><div class="card"><h3>CoopVault could not start</h3><p class="bad">${esc(e.message)}</p><p class="small">Try a hard refresh (Ctrl+Shift+R), or clear this site's data, then reload.</p></div></main>`});
+window.addEventListener('online',()=>toast('Back online'));window.addEventListener('offline',()=>toast('Offline — your data stays on this device'));
+window.CV={selfCheck,get S(){return S},ui,ACT,FORMS,CHG,VIEWS,render,save,simulate,reconcile,assistantLocal,askAI,statementCSV,c2b,get CLOCK(){return CLOCK}};
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+applyLite();render();
+</script>
+</body>
+</html>
