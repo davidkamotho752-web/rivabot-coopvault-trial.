@@ -1,1 +1,62 @@
+COOPVAULT v13.18 — LAUNCH IN 10 MINUTES (trial, fake data only)
+================================================================
 
+WHAT IS IN THIS DOWNLOAD
+  upload/   <- the ONLY folder you need. Everything inside goes to GitHub.
+  extras/   <- CHANGELOG (what each version added). Not uploaded.
+
+STEP 1 — PUT THE FILES ON GITHUB (first time)
+  1. Go to your repository on github.com (the one you used before).
+     (If you want a fresh one: New repository, name it, set it Public, Create.)
+  2. Click "Add file" > "Upload files".
+  3. Open the "upload" folder on your computer, select ALL files inside
+     (index.html, sw.js, manifest.webmanifest, icon.svg, icon-192.png,
+      icon-512.png, and .nojekyll if you can see it) and drag them in.
+     Same names as before? GitHub replaces the old ones. That is what you want.
+  4. Scroll down, click "Commit changes".
+
+STEP 2 — SWITCH THE WEBSITE ON (first time only)
+  1. In the repository: Settings > Pages.
+  2. Source: "Deploy from a branch". Branch: main, folder: / (root). Save.
+  3. Wait 1–2 minutes. The page shows your address:
+     https://YOUR-NAME.github.io/YOUR-REPOSITORY/
+
+STEP 3 — FIRST RUN
+  1. Open the address on your laptop or phone.
+  2. The first screen is "Set up your SACCO". Type the society name, employer,
+     your name, ID number and a PIN (6+ characters; use the Show button to check it).
+  3. Leave the two trial boxes ticked: they fill the app with EDITABLE sample
+     people and activity, and show a code on screen at login.
+  4. Tick the agreement, press "Create administrator".
+  5. Page one now shows every window. Tap one to look around.
+
+STEP 4 — INSTALL ON A PHONE
+  Android (Chrome): menu (three dots) > "Install app" or "Add to Home screen".
+  iPhone (Safari): Share button > "Add to Home Screen".
+
+STEP 5 — TESTERS
+  Testers press "Create my own login" (full name, phone number, own PIN).
+  Their name appears on everything they do. Maximum 20 testers for the trial.
+
+UPDATING LATER (the same steps, no setup again)
+  Upload the new files over the old ones (Step 1). Wait 1–2 minutes, then
+  reload the page twice. Data already typed in a browser stays there.
+
+IMPORTANT — READ ONCE
+  * FAKE DATA ONLY. This version keeps data inside each person's own browser.
+    It is not a secure server. Real members' data waits for the Supabase stage.
+  * The repository must be Public for free GitHub Pages. Do not put anything
+    private in it. Share the link only with your testers.
+  * Phone numbers are not verified by SMS yet (needs the server stage).
+  * Each tester's data is separate (their own browser). To wipe a browser:
+    browser settings > clear site data for the address.
+  * Tested in Chromium (Chrome/Edge/Android). Other browsers not yet tested.
+  * Feedback and screenshots reach the developer as a file (Feedback > Export)
+    until the server stage.
+  * The society/app name is still the neutral "CoopVault". Tell the developer
+    the final name and it is changed in one go.
+
+STUCK?
+  Blank page after upload: wait 2 minutes, reload twice.
+  Old look after update: close the tab and reopen, or clear site data.
+  Page shows 404: Settings > Pages must say "Your site is live at ...".
